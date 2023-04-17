@@ -1,13 +1,24 @@
+import os
 import re
+import zipfile
 import ocrmypdf
-import requests
 from PyPDF2 import PdfReader
 from datetime import datetime
-from urllib.parse import urljoin
-from pdfminer.layout import LAParams
-from pdfminer.high_level import extract_text
 
 from .enums import s, f
+from .tasks import detect_pdfs
+
+
+def extract_zip_file(zip_file_location, pk):
+    with zipfile.ZipFile(zip_file_location, 'r') as file_zip:
+        zip_file_dir = os.path.join(
+            os.path.dirname(zip_file_location),
+            zip_file_location[:str(zip_file_location).rindex('.')]
+        )
+        if not os.path.exists(zip_file_dir):
+            os.makedirs(zip_file_dir)
+        file_zip.extractall(zip_file_dir)
+        detect_pdfs.delay(zip_file_dir, pk)
 
 
 def file_upload_location(obj, file):

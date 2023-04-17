@@ -7,10 +7,18 @@ from django.contrib.admin.filters import ChoicesFieldListFilter
 from rangefilter.filters import DateRangeFilter, NumericRangeFilter
 
 from .tasks import extract_url_pdf, extract_local_pdf
-from .models import Inform, FileDetail, SearchDetail, IgnoreFile, IgnoreText, Logo
+from . import models
 
 
-@admin.register(Logo)
+@admin.register(models.ZipFileUpload)
+class ZipFileUploadAdmin(admin.ModelAdmin):
+    list_display = ['country', 'pdfs_count', 'is_completed', 'zip_file', 'created_at']
+    list_display_links = ['is_completed', 'country', 'created_at']
+    list_filter = ['country']
+    list_per_page = 20
+
+
+@admin.register(models.Logo)
 class LogoAdmin(admin.ModelAdmin):
     list_display = ['country', 'region', 'logo_img']
     list_display_links = ['country', 'region']
@@ -24,7 +32,7 @@ class LogoAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         if obj.pk:
-            old_file = Logo.objects.get(pk=obj.pk).logo
+            old_file = models.Logo.objects.get(pk=obj.pk).logo
             if old_file and old_file != obj.logo and os.path.isfile(old_file.path):
                 os.remove(old_file.path)
             obj.save()
@@ -33,7 +41,7 @@ class LogoAdmin(admin.ModelAdmin):
                 registry.update(i)
         else:
             obj.save()
-            FileDetail.objects.filter(region=obj.region).update(logo_id=obj.id)
+            models.FileDetail.objects.filter(region=obj.region).update(logo_id=obj.id)
 
     def delete_queryset(self, request, queryset):
         for obj in queryset:
@@ -47,7 +55,7 @@ class LogoAdmin(admin.ModelAdmin):
         obj.delete()
 
 
-@admin.register(IgnoreText)
+@admin.register(models.IgnoreText)
 class IgnoreTextAdmin(admin.ModelAdmin):
     list_display = ['text', 'from_filename']
     list_filter = ['from_filename']
@@ -55,7 +63,7 @@ class IgnoreTextAdmin(admin.ModelAdmin):
     search_fields = ['text']
 
 
-@admin.register(FileDetail)
+@admin.register(models.FileDetail)
 class FileDetailAdmin(admin.ModelAdmin):
     list_display = (
        'link_id', 'country', 'region', 'organ', 'file_date', 'pages', 'size', 'file'
@@ -98,24 +106,24 @@ class FileDetailAdmin(admin.ModelAdmin):
     def delete_queryset(self, request, queryset):
         ignore_files = []
         for obj in queryset:
-            if obj.inform and not IgnoreFile.objects.filter(
+            if obj.inform and not models.IgnoreFile.objects.filter(
                     link=obj.inform.link, source_file_link=obj.source_file_link
             ).exists():
-                ignore_files.append(IgnoreFile(link=obj.inform.link, source_file_link=obj.source_file_link))
+                ignore_files.append(models.IgnoreFile(link=obj.inform.link, source_file_link=obj.source_file_link))
         queryset.delete()
-        IgnoreFile.objects.bulk_create(ignore_files)
+        models.IgnoreFile.objects.bulk_create(ignore_files)
 
     def delete_model(self, request, obj):
-        if obj.inform and not IgnoreFile.objects.filter(
+        if obj.inform and not models.IgnoreFile.objects.filter(
                 link=obj.inform.link, source_file_link=obj.source_file_link
         ).exists():
-            IgnoreFile.objects.create(link=obj.inform.link, source_file_link=obj.source_file_link)
+            models.IgnoreFile.objects.create(link=obj.inform.link, source_file_link=obj.source_file_link)
         obj.delete()
 
     def save_model(self, request, obj, form, change):
         created = False if obj.pk else True
         if not created:
-            old_file = FileDetail.objects.get(pk=obj.pk).file
+            old_file = models.FileDetail.objects.get(pk=obj.pk).file
             if old_file and old_file != obj.file and os.path.isfile(old_file.path):
                 os.remove(old_file.path)
                 obj.save()
@@ -128,7 +136,7 @@ class FileDetailAdmin(admin.ModelAdmin):
             extract_local_pdf.delay(obj.id, obj.file.path)
 
 
-@admin.register(Inform)
+@admin.register(models.Inform)
 class InformAdmin(admin.ModelAdmin):
     list_display = ('id', 'country', 'region', 'organ', 'is_completed', 'date_created', 'source_link')
     list_display_links = ('id', 'date_created')
@@ -170,17 +178,17 @@ class InformAdmin(admin.ModelAdmin):
 
         else:
             change_link = False
-            if obj.link != Inform.objects.get(pk=obj.pk).link:
+            if obj.link != models.Inform.objects.get(pk=obj.pk).link:
                 change_link = True
-                FileDetail.objects.filter(inform_id=obj.id).delete()
-                IgnoreFile.objects.filter(link=obj.link).delete()
+                models.FileDetail.objects.filter(inform_id=obj.id).delete()
+                models.IgnoreFile.objects.filter(link=obj.link).delete()
 
             obj.save()
             if change_link:
                 extract_url_pdf.delay(obj.link, obj.id)
 
 
-@admin.register(SearchDetail)
+@admin.register(models.SearchDetail)
 class SearchDetailAdmin(admin.ModelAdmin):
     list_display = ('date_created', 'ipaddress', 'result_files_cnt', 'text')
     list_display_links = ('date_created',)
@@ -188,7 +196,7 @@ class SearchDetailAdmin(admin.ModelAdmin):
     ordering = ('-date_created',)
 
 
-@admin.register(IgnoreFile)
+@admin.register(models.IgnoreFile)
 class IgnoreFileAdmin(admin.ModelAdmin):
     list_display = ('source_file_href', 'source_link', 'date_added')
     list_display_links = list_display

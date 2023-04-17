@@ -1,12 +1,30 @@
 from django.db import models
-from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import FileExtensionValidator
 
 from .validators import validate_link
 from .enums import InformCountry, InformRegion, ORGANS
-from .services import file_upload_location
+from .services import file_upload_location, extract_zip_file
+
+
+class ZipFileUpload(models.Model):
+    country = models.CharField(verbose_name='Län', max_length=3, choices=InformCountry.choices())
+    zip_file = models.FileField(
+        upload_to='zip_files/', validators=[FileExtensionValidator(allowed_extensions=['zip'])]
+    )
+    pdfs_count = models.PositiveSmallIntegerField(blank=True, default=0)
+    is_completed = models.BooleanField(verbose_name='är klart', default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'{self.get_country_display()}-{self.created_at}'
+
+    def save(self, *args, **kwargs):
+        created = True if not self.pk else False
+        super().save(*args, **kwargs)
+        if created:
+            extract_zip_file(self.zip_file.path, self.id)
 
 
 class Logo(models.Model):
@@ -74,6 +92,9 @@ class FileDetail(models.Model):
     is_scanned = models.BooleanField(verbose_name='skannade', default=False)
 
     inform = models.ForeignKey(Inform, verbose_name='LÄNK ID', on_delete=models.CASCADE, blank=True, null=True)
+    zip_file = models.ForeignKey(
+        ZipFileUpload, verbose_name='Zip File', on_delete=models.CASCADE, blank=True, null=True
+    )
     logo = models.ForeignKey(Logo, verbose_name='Logotype', on_delete=models.SET_NULL, null=True)
 
     def __str__(self):

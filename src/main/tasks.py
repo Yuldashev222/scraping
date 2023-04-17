@@ -14,13 +14,10 @@ from django.conf import settings
 from django.db.utils import DataError
 from urllib3.exceptions import InsecureRequestWarning
 from urllib.parse import urljoin, urlparse, urlunparse
-from django_elasticsearch_dsl.registries import registry
-from django.forms import model_to_dict
 
 from . import models, enums
 from .enums import s, f
-from .documents import FileDetailDocument
-from .services import get_date_from_text, is_ignore_file, get_text_and_pages, get_organ_from_text
+from . import services
 
 token = '[-!#-\'*+.\dA-Z^-z|~]+'
 qdtext = '[]-~\t !#-[]'
@@ -45,16 +42,80 @@ headers_html = {
 
 
 @shared_task
+def detect_pdfs(directory_path, zip_file_model_id):
+    print('detect_pdfs ------------------------------------------- start')
+    zip_file_model = models.ZipFileUpload.objects.get(id=zip_file_model_id)
+
+    cnt = 0
+    objs = []
+
+    regions = os.listdir(directory_path)
+    for region in regions:
+        normalizing_region = ' '.join(region.split()).strip().lower()
+        try:
+            model_region = enums.InformRegion.choices()[
+                enums.InformRegion.values().index(normalizing_region)
+            ][0]
+        except ValueError:
+            continue
+
+        organs_path = os.path.join(directory_path, region)
+        organs = os.listdir(organs_path)
+        for organ in organs:
+            normalizing_organ = ' '.join(organ.split()).strip().lower()
+            if normalizing_organ == 'kf':
+                model_organ = 'f'
+            elif normalizing_organ == 'ks':
+                model_organ = 's'
+            else:
+                break
+
+            years_path = os.path.join(organs_path, organ)
+            years = os.listdir(years_path)
+            for year in years:
+                pdf_files = os.listdir(os.path.join(years_path, year))
+                for pdf_file in pdf_files:
+                    print(os.path.join(os.path.join(years_path, year), pdf_file))
+                    objs.append(
+                        models.FileDetail(
+                            country=model_region[:3],
+                            region=model_region,
+                            organ=model_organ,
+                            zip_file_id=zip_file_model_id,
+                            #logo_id=models.Logo.objects.get(region=model_region).id,
+                            file=f'zip_files/{directory_path.split("/")[-1]}/{region}/{organ}/{year}/{pdf_file}'
+                        )
+                    )
+                    cnt += 1
+                    if len(objs) >= 30:
+                        models.FileDetail.objects.bulk_create(objs)
+                        for i in zip_file_model.filedetail_set.order_by('-id')[:len(objs)]:
+                            extract_local_pdf(i.id, i.file.path)
+                            i.save()
+                        objs = []
+
+    zip_file_model.pdfs_count = cnt
+    zip_file_model.is_completed = True
+    zip_file_model.save()
+    models.FileDetail.objects.bulk_create(objs)
+    for i in zip_file_model.filedetail_set.order_by('-id')[:len(objs)]:
+        extract_local_pdf(i.id, i.file.path)
+        i.save()
+    os.remove(directory_path)
+    print('detect_pdfs ------------------------------------------- end')
+
+
+@shared_task
 def extract_local_pdf(obj_id, pdf_file):
     print('extract_local_pdf ------------------------------------------- start')
     obj = models.FileDetail.objects.get(id=obj_id)
 
     try:
-        obj.text, obj.pages = get_text_and_pages(pdf_file)
+        obj.text, obj.pages = services.get_text_and_pages(pdf_file)
         obj.size = round(os.path.getsize(pdf_file) / 1_000_000, 2)
 
         if not obj.file_date:
-            date = get_date_from_text(obj.text[:500])
+            date = services.get_date_from_text(obj.text[:500])
             obj.file_date = date if bool(date) else None
         filename = f'{uuid4()}.pdf'
         location = f'{obj.country}/{obj.region}/{obj.organ}/{obj.file_date}/{filename}'
@@ -250,7 +311,7 @@ def extract_url_pdf(webpage_url, inform_id):
     for index, (pdf_link, pdf_name) in enumerate(pdf_links_copy.items(), 0):
         view_file_name = pdf_view_file_names[index]
 
-        date = get_date_from_text(view_file_name + str(pdf_name))
+        date = services.get_date_from_text(view_file_name + str(pdf_name))
         if date and not is_desired_date(date):
             print(f'{pdf_link}---------------------------------ignore date')
             continue
@@ -278,12 +339,12 @@ def extract_url_pdf(webpage_url, inform_id):
                     pdf_link, headers=headers_html, allow_redirects=True, verify=False, stream=True
                 ).content)
             try:
-                text_in_file, pages = get_text_and_pages(save_path)
+                text_in_file, pages = services.get_text_and_pages(save_path)
             except Exception as e:
                 os.remove(save_path)
                 print(e)
                 continue
-            if is_ignore_file(text_in_file[:500], ignore_texts_from_first_page):
+            if services.is_ignore_file(text_in_file[:500], ignore_texts_from_first_page):
                 print(f'{pdf_link}---------------------------------ignore first page')
                 os.remove(save_path)
                 continue
@@ -314,10 +375,10 @@ def extract_url_pdf(webpage_url, inform_id):
                 ).content)
 
             try:
-                text_in_file, pages = get_text_and_pages(save_path)
+                text_in_file, pages = services.get_text_and_pages(save_path)
                 organ, gr_date = (
-                    get_organ_from_text(text_in_file[:500]) if not bool(get_organ) else get_organ,
-                    get_date_from_text(text_in_file[:500]) if not bool(date) else date
+                    services.get_organ_from_text(text_in_file[:500]) if not bool(get_organ) else get_organ,
+                    services.get_date_from_text(text_in_file[:500]) if not bool(date) else date
                 )
             except Exception as e:
                 os.remove(save_path)
@@ -325,7 +386,7 @@ def extract_url_pdf(webpage_url, inform_id):
                 continue
             if not bool(organ):  # last
                 continue
-            if is_ignore_file(text_in_file[:500], ignore_texts_from_first_page):
+            if services.is_ignore_file(text_in_file[:500], ignore_texts_from_first_page):
                 os.remove(save_path)
                 print(f'{pdf_link}                  -------------------ignore first page')
                 continue
@@ -364,7 +425,8 @@ def extract_url_pdf(webpage_url, inform_id):
     models.FileDetail.objects.bulk_create(objs)
     for i in inform.filedetail_set.order_by('-id')[:len(objs)]:
         dct = {
-            'file': i.file, 'logo': i.logo, 'id': i.id, 'pages': i.pages, 'size': i.size, 'country': i.country, 'region': i.region, 'organ': i.organ, 'file_date': i.file_date, 'text': i.text
+            'file': i.file, 'logo': i.logo, 'id': i.id, 'pages': i.pages, 'size': i.size, 'country': i.country,
+            'region': i.region, 'organ': i.organ, 'file_date': i.file_date, 'text': i.text
         }
         i.save()
     inform.is_completed = True
@@ -575,7 +637,7 @@ def test(webpage_url):
         elif [text for text in ignore_texts_from_filename if text in view_file_name + str(link).lower()]:
             continue
 
-        date = get_date_from_text(view_file_name + filename)
+        date = services.get_date_from_text(view_file_name + filename)
         if date and not date.year >= 2018:
             continue
         if 'kommunstyrelsen' in view_file_name:
