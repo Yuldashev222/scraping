@@ -105,7 +105,8 @@ class SearchFilesView(ListAPIView):
         if bool(filter_region_query) and filter_region_query in InformRegion.keys():
             search = search.query(self.filter_q_expression({'region': filter_region_query}))
 
-        if bool(search_query):
+        bol = bool(search_query)
+        if bol:
             search_query = ' '.join(search_query.split()).lower()
 
             # required text expression
@@ -152,6 +153,9 @@ class SearchFilesView(ListAPIView):
                 q = self.exact_q_expression(required_text)
                 search = search.query(q).sort({"_score": {"order": "desc"}})
             # -----------------------
+            search = search.highlight(
+                'text', fragment_size=100, pre_tags='<mark>', post_tags='</mark>'
+            )
 
         if bool(ordering_query) and ordering_query in ['-file_date', 'file_date']:
             if ordering_query.startswith('-'):
@@ -159,6 +163,13 @@ class SearchFilesView(ListAPIView):
             else:
                 search = search.sort('file_date')
 
-        page = self.paginate_queryset(search)
-        serializer = self.serializer_class(page, many=True, context={'request': request})
-        return self.get_paginated_response(serializer.data)
+        page = request.query_params.get('page', 1)
+        try:
+            response = search[(int(page) - 1) * 10:].execute()
+        except:
+            response = search.execute()
+        serializer = self.serializer_class(response, many=True, context={'request': request, 'bol': bol})
+        return Response(OrderedDict([
+            ('count', response.hits.total.value),
+            ('results', serializer.data)
+        ]))

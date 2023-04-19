@@ -75,7 +75,6 @@ def detect_pdfs(directory_path, zip_file_model_id):
             for year in years:
                 pdf_files = os.listdir(os.path.join(years_path, year))
                 for pdf_file in pdf_files:
-                    print(os.path.join(os.path.join(years_path, year), pdf_file))
                     obj = models.FileDetail.objects.create(
                         country=model_region[:3],
                         region=model_region,
@@ -90,8 +89,8 @@ def detect_pdfs(directory_path, zip_file_model_id):
     zip_file_model.pdfs_count = cnt
     zip_file_model.is_completed = True
     zip_file_model.save()
-    os.rmdir(directory_path)
     os.remove(zip_file_model.zip_file.path)
+    os.rmdir(directory_path)
     print('detect_pdfs ------------------------------------------- end')
 
 
