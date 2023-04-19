@@ -42,6 +42,10 @@ class FileDetailDocumentSerializer(serializers.Serializer):
 
             text = text.strip()
             index = obj.text.find(text)
+            if bool(required_text):
+                p = rf'\W{text}\W'
+                #search_text = re.search(p, obj.text).group()
+                #index = obj.text.find(search_text)
             if index == -1:
                 for i in text.split():
                     index = obj.text.find(i)

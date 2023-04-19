@@ -76,32 +76,22 @@ def detect_pdfs(directory_path, zip_file_model_id):
                 pdf_files = os.listdir(os.path.join(years_path, year))
                 for pdf_file in pdf_files:
                     print(os.path.join(os.path.join(years_path, year), pdf_file))
-                    objs.append(
-                        models.FileDetail(
-                            country=model_region[:3],
-                            region=model_region,
-                            organ=model_organ,
-                            zip_file_id=zip_file_model_id,
-                            #logo_id=models.Logo.objects.get(region=model_region).id,
-                            file=f'zip_files/{directory_path.split("/")[-1]}/{region}/{organ}/{year}/{pdf_file}'
-                        )
+                    obj = models.FileDetail.objects.create(
+                        country=model_region[:3],
+                        region=model_region,
+                        organ=model_organ,
+                        zip_file_id=zip_file_model_id,
+                        logo_id=models.Logo.objects.get(region=model_region).id,
+                        file=f'zip_files/{directory_path.split("/")[-1]}/{region}/{organ}/{year}/{pdf_file}'
                     )
                     cnt += 1
-                    if len(objs) >= 30:
-                        models.FileDetail.objects.bulk_create(objs)
-                        for i in zip_file_model.filedetail_set.order_by('-id')[:len(objs)]:
-                            extract_local_pdf(i.id, i.file.path)
-                            i.save()
-                        objs = []
+                    extract_local_pdf(obj.id, obj.file.path)
 
     zip_file_model.pdfs_count = cnt
     zip_file_model.is_completed = True
     zip_file_model.save()
-    models.FileDetail.objects.bulk_create(objs)
-    for i in zip_file_model.filedetail_set.order_by('-id')[:len(objs)]:
-        extract_local_pdf(i.id, i.file.path)
-        i.save()
-    os.remove(directory_path)
+    os.rmdir(directory_path)
+    os.remove(zip_file_model.zip_file.path)
     print('detect_pdfs ------------------------------------------- end')
 
 

@@ -9,7 +9,6 @@ from .services import file_upload_location, extract_zip_file
 
 
 class ZipFileUpload(models.Model):
-    country = models.CharField(verbose_name='Län', max_length=3, choices=InformCountry.choices())
     zip_file = models.FileField(
         upload_to='zip_files/', validators=[FileExtensionValidator(allowed_extensions=['zip'])]
     )
@@ -17,8 +16,20 @@ class ZipFileUpload(models.Model):
     is_completed = models.BooleanField(verbose_name='är klart', default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def clean(self):
+        if (
+                (
+                        ZipFileUpload.objects.exclude(pk=self.pk).filter(is_completed=False).exists()  # last
+                        and
+                        not self.pk
+                )
+                or
+                Inform.objects.filter(is_completed=False).exists()
+        ):
+            raise ValidationError('den sista länken är inte klar än')
+
     def __str__(self):
-        return f'{self.get_country_display()}-{self.created_at}'
+        return f'{self.created_at}'
 
     def save(self, *args, **kwargs):
         created = True if not self.pk else False
@@ -59,13 +70,17 @@ class Inform(models.Model):
 
     def clean(self):
         if (
-                Inform.objects.exclude(pk=self.pk).filter(is_completed=False).exists()  # last
-                and
                 (
-                        not self.pk
-                        or
-                        self.pk and self.link != Inform.objects.get(pk=self.pk).link
+                        Inform.objects.exclude(pk=self.pk).filter(is_completed=False).exists()  # last
+                        and
+                        (
+                                not self.pk
+                                or
+                                self.pk and self.link != Inform.objects.get(pk=self.pk).link
+                        )
                 )
+                or
+                ZipFileUpload.objects.filter(is_completed=False).exists()
         ):
             raise ValidationError('den sista länken är inte klar än')
 

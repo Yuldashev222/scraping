@@ -12,9 +12,10 @@ from . import models
 
 @admin.register(models.ZipFileUpload)
 class ZipFileUploadAdmin(admin.ModelAdmin):
-    list_display = ['country', 'pdfs_count', 'is_completed', 'zip_file', 'created_at']
-    list_display_links = ['is_completed', 'country', 'created_at']
-    list_filter = ['country']
+    list_display = ['pdfs_count', 'is_completed', 'zip_file', 'created_at']
+    list_display_links = ['is_completed', 'created_at']
+    list_filter = ['is_completed', 'created_at']
+    readonly_fields = ('is_completed', 'pdfs_count')
     list_per_page = 20
 
 
