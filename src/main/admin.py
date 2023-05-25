@@ -94,7 +94,7 @@ class FileDetailAdmin(admin.ModelAdmin):
         'size',
         'text',
     )
-    readonly_fields = ('pages', 'size', 'text', 'source_file_link')
+    readonly_fields = ('pages', 'logo', 'size', 'text', 'source_file_link')
 
     def link_id(self, obj):
         if obj.inform:
@@ -132,7 +132,7 @@ class FileDetailAdmin(admin.ModelAdmin):
             else:
                 obj.save()
         else:
-            print(111111111111111111111111111)
+            obj.logo_id = models.Logo.objects.get(region=obj.region).id
             obj.save()
             extract_local_pdf.delay(obj.id, obj.file.path)
 

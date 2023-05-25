@@ -23,8 +23,10 @@ class FileDetailDocumentSerializer(serializers.Serializer):
 
     def get_about_text(self, obj):
         if self.context['bol']:
-            print(list(map(len, obj.meta.highlight.text)))
-            return '<br>'.join(obj.meta.highlight.text)
+            try:
+                return '<br>'.join(obj.meta.highlight.text)
+            except:
+                pass
         return obj.text[300:800]
         # max_len = 400
         # search_query = self.context['request'].query_params.get('search', '').strip()

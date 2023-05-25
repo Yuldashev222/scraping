@@ -207,7 +207,6 @@ class InformRegion(Enum):
     sto_tyr = 'Tyresö'
     sto_tab = 'Täby'
     sto_upp = 'Upplands Väsby'
-    sto_vas = 'Väsby'
     sto_upb = 'Upplands-Bro'
     sto_val = 'Vallentuna'
     sto_vax = 'Vaxholm'

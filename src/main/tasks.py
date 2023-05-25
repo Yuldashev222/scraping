@@ -3,6 +3,7 @@ import re
 import sys
 import time
 import urllib
+import shutil
 import urllib3
 import requests
 import openpyxl
@@ -71,26 +72,30 @@ def detect_pdfs(directory_path, zip_file_model_id):
                 break
 
             years_path = os.path.join(organs_path, organ)
-            years = os.listdir(years_path)
+            try:
+                years = os.listdir(years_path)
+            except:
+                continue
             for year in years:
-                pdf_files = os.listdir(os.path.join(years_path, year))
-                for pdf_file in pdf_files:
-                    obj = models.FileDetail.objects.create(
-                        country=model_region[:3],
-                        region=model_region,
-                        organ=model_organ,
-                        zip_file_id=zip_file_model_id,
-                        logo_id=models.Logo.objects.get(region=model_region).id,
-                        file=f'zip_files/{directory_path.split("/")[-1]}/{region}/{organ}/{year}/{pdf_file}'
-                    )
-                    cnt += 1
-                    extract_local_pdf(obj.id, obj.file.path)
-
+                try:
+                    pdf_files = os.listdir(os.path.join(years_path, year))
+                    for pdf_file in pdf_files:
+                        obj = models.FileDetail.objects.create(
+                            country=model_region[:3],
+                            region=model_region,
+                            organ=model_organ,
+                            zip_file_id=zip_file_model_id,
+                            logo_id=models.Logo.objects.get(region=model_region).id,
+                            file=f'zip_files/{directory_path.split("/")[-1]}/{region}/{organ}/{year}/{pdf_file}'
+                        )
+                        cnt += 1
+                        extract_local_pdf(obj.id, obj.file.path)
+                except:
+                    continue
     zip_file_model.pdfs_count = cnt
     zip_file_model.is_completed = True
     zip_file_model.save()
     os.remove(zip_file_model.zip_file.path)
-    os.rmdir(directory_path)
     print('detect_pdfs ------------------------------------------- end')
 
 
@@ -104,7 +109,7 @@ def extract_local_pdf(obj_id, pdf_file):
         obj.size = round(os.path.getsize(pdf_file) / 1_000_000, 2)
 
         if not obj.file_date:
-            date = services.get_date_from_text(obj.text[:500])
+            date = services.get_date_from_text(obj.text[:2100])
             obj.file_date = date if bool(date) else None
         filename = f'{uuid4()}.pdf'
         location = f'{obj.country}/{obj.region}/{obj.organ}/{obj.file_date}/{filename}'
@@ -367,7 +372,7 @@ def extract_url_pdf(webpage_url, inform_id):
                 text_in_file, pages = services.get_text_and_pages(save_path)
                 organ, gr_date = (
                     services.get_organ_from_text(text_in_file[:500]) if not bool(get_organ) else get_organ,
-                    services.get_date_from_text(text_in_file[:500]) if not bool(date) else date
+                    services.get_date_from_text(text_in_file[:2100]) if not bool(date) else date
                 )
             except Exception as e:
                 os.remove(save_path)

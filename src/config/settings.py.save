@@ -11,7 +11,7 @@ environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 SECRET_KEY = env("SECRET_KEY")
 DEBUG = False
 
-ALLOWED_HOSTS = ["backend.minalappar.se", "oybekyuldashev.uz", "filer.offentligabeslut.se", "127.0.0.1", "localhost"]
+ALLOWED_HOSTS = ["backend.minalappar.se", "127.0.0.1", "localhost"]
 
 DEFAULT_INSTALLED_APPS = [
     'django.contrib.admin',
@@ -169,7 +169,7 @@ ELASTICSEARCH_DSL = {
 #        'console': {'class': 'logging.StreamHandler'}
 #    },
 #    'loggers': {
-#        'django.db.backends': {
+q#        'django.db.backends': {
 #            'handlers': ['console'],
 #            'level': 'DEBUG'
 #        }

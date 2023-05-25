@@ -17,8 +17,6 @@ from .serializers import FileDetailDocumentSerializer
 class CustomPageNumberPagination(PageNumberPagination):
     def get_paginated_response(self, data):
         count = self.page.paginator.count
-        print(count)
-        return count
         search_text = self.request.query_params.get('search', '').strip()
         if bool(search_text):
             create_search_detail_obj.delay(
@@ -110,7 +108,6 @@ class SearchFilesView(ListAPIView):
         bol = bool(search_query)
         if bol:
             search_query = ' '.join(search_query.split()).lower()
-            s_copy = search_query
 
             # required text expression
             required_pattern = r'".{,}"'
@@ -157,7 +154,7 @@ class SearchFilesView(ListAPIView):
                 search = search.query(q).sort({"_score": {"order": "desc"}})
             # -----------------------
             search = search.highlight(
-                'text', fragment_size=130, pre_tags='<mark>', post_tags='</mark>', max_analyzed_offset=500000
+                'text', fragment_size=130, pre_tags='<mark>', post_tags='</mark>'
             )
 
         if bool(ordering_query) and ordering_query in ['-file_date', 'file_date']:
@@ -168,25 +165,12 @@ class SearchFilesView(ListAPIView):
 
         page = request.query_params.get('page', 1)
         try:
-            print((int(page) - 1) * 10, '=====================')
             response = search[(int(page) - 1) * 10:].execute()
-            print((int(page) - 1) * 10, '=====================')
-        except Exception as e:
-            print(e)
-            print()
+        except:
             response = search.execute()
         serializer = self.serializer_class(response, many=True, context={'request': request, 'bol': bol})
-        self.paginate_queryset(search)
-        count = self.get_paginated_response(search)
-        if bol:
-            create_search_detail_obj.delay(
-                search_text=s_copy,
-                files_cnt=count,
-                forwarded=request.META.get('HTTP_X_FORWARDED_FOR'),
-                real=request.META.get('HTTP_X_REAL_IP'),
-                remote=request.META.get('REMOTE_ADDR')
-            )
+
         return Response(OrderedDict([
-            ('count', count),
+            ('count', response.hits.total.value),
             ('results', serializer.data)
         ]))
