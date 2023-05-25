@@ -2,11 +2,17 @@ import os
 import re
 import zipfile
 import ocrmypdf
+import subprocess
 from PyPDF2 import PdfReader
 from datetime import datetime
 
 from .enums import s, f
 from .tasks import detect_pdfs
+
+
+def convert_word_to_pdf(doc_path, path):
+    subprocess.call(['soffice', '--convert-to', 'pdf', '--outdir', path, doc_path])
+    return doc_path
 
 
 def extract_zip_file(zip_file_location, pk):
@@ -18,7 +24,8 @@ def extract_zip_file(zip_file_location, pk):
         if not os.path.exists(zip_file_dir):
             os.makedirs(zip_file_dir)
         file_zip.extractall(zip_file_dir)
-        detect_pdfs.delay(zip_file_dir, pk)
+        # detect_pdfs.delay(zip_file_dir, pk)
+        detect_pdfs(zip_file_dir, pk)
 
 
 def file_upload_location(obj, file):

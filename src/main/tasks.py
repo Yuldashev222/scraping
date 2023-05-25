@@ -3,7 +3,6 @@ import re
 import sys
 import time
 import urllib
-import shutil
 import urllib3
 import requests
 import openpyxl
@@ -80,6 +79,14 @@ def detect_pdfs(directory_path, zip_file_model_id):
                 try:
                     pdf_files = os.listdir(os.path.join(years_path, year))
                     for pdf_file in pdf_files:
+                        location = f'{directory_path}/{region}/{organ}/{year}/{pdf_file}'
+                        pdf_file = "".join(pdf_file.split())
+                        normalize_location = f'{directory_path}/{region}/{organ}/{year}/{pdf_file}'
+                        os.rename(location, normalize_location)
+                        if pdf_file.endswith('.doc') or pdf_file.endswith('.docx'):
+                            services.convert_word_to_pdf(normalize_location,
+                                                         f'{directory_path}/{region}/{organ}/{year}')
+                            pdf_file = pdf_file.replace('.docx', '.pdf').replace('.doc', '.pdf')
                         obj = models.FileDetail.objects.create(
                             country=model_region[:3],
                             region=model_region,
@@ -92,6 +99,7 @@ def detect_pdfs(directory_path, zip_file_model_id):
                         extract_local_pdf(obj.id, obj.file.path)
                 except:
                     continue
+
     zip_file_model.pdfs_count = cnt
     zip_file_model.is_completed = True
     zip_file_model.save()
@@ -147,7 +155,6 @@ def extract_url_pdf(webpage_url, inform_id):
         r = requests.get(webpage_url, headers=headers_html, allow_redirects=True, verify=False, stream=True)
     except Exception as e:
         print('extract ------------------------------------------- bad url')
-        print(e)
         inform.is_completed = True
         inform.save()
         print(222222222222)
