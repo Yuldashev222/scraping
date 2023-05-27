@@ -81,12 +81,15 @@ def detect_pdfs(directory_path, zip_file_model_id):
                     for pdf_file in pdf_files:
                         location = f'{directory_path}/{region}/{organ}/{year}/{pdf_file}'
                         pdf_file = "".join(pdf_file.split())
+                        file_format = pdf_file.split('.')[-1].lower()
                         normalize_location = f'{directory_path}/{region}/{organ}/{year}/{pdf_file}'
                         os.rename(location, normalize_location)
-                        if pdf_file.endswith('.doc') or pdf_file.endswith('.docx'):
+                        if file_format == 'doc' or file_format == 'docx':
                             services.convert_word_to_pdf(normalize_location,
                                                          f'{directory_path}/{region}/{organ}/{year}')
-                            pdf_file = pdf_file.replace('.docx', '.pdf').replace('.doc', '.pdf')
+                            file_format = file_format.replace('docx', 'pdf').replace('doc', 'pdf')
+                            pdf_file = '.'.join(pdf_file.split('.')[:-1]) + f'.{file_format}'
+
                         obj = models.FileDetail.objects.create(
                             country=model_region[:3],
                             region=model_region,
