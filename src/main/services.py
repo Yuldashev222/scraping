@@ -34,19 +34,34 @@ def file_upload_location(obj, file):
 
 
 def myocr(input_file):
-
     ocrmypdf.ocr(input_file=input_file,
                  output_file=input_file,
                  deskew=True,
-                 pdfa_image_compression='jpeg',
-                 output_type='pdfa',
+                 output_type='pdf',
                  skip_big=50,
                  language='swe',
                  force_ocr=True)
-#    ocrmypdf.ocr(
-#        input_file, input_file, output_type='pdf',
-#        rotate_pages=True, deskew=True, language='swe', force_ocr=True, max_image_mpixels=30000000
-#    )
+
+
+def first_page_ocr(input_file):
+    ocrmypdf.ocr(input_file=input_file,
+                 output_file=input_file + '.first_page.pdf',
+                 deskew=True,
+                 output_type='pdf',
+                 skip_big=50,
+                 language='swe',
+                 force_ocr=True,
+                 pages='1')
+
+
+def get_first_page_text(pdf_file):
+    first_page_ocr(pdf_file)
+    with open(pdf_file + '.first_page.pdf', 'rb') as file:
+        pdf_reader = PdfReader(file)
+        text = pdf_reader.pages[0].extract_text()
+        text = ' '.join(text.split()).strip().lower()
+    print('COMPLETED=====================')
+    return text
 
 
 def get_text_and_pages(pdf_file):
@@ -58,7 +73,7 @@ def get_text_and_pages(pdf_file):
         text = ''
         for page in pdf_reader.pages:
             text += page.extract_text()
-    text = ' '.join(text.split()).strip().replace("\x00", "\uFFFD").lower()
+    text = ' '.join(text.split()).strip().lower()
     print('COMPLETED=====================')
     return text, pages
 
@@ -113,8 +128,12 @@ swedish_to_english_months = {
 }
 
 
-def get_date_from_text(text, ignore_file=False, first_date=None):
-    date_pattern = r'(\d{4} ?(-|‐) ?(0[1-9]|1[012]) ?(-|‐) ?(0[1-9]|[12][0-9]|3[01]))|((0[1-9]|[12][0-9]|3[01]) ?. ?(0[1-9]|1[012]) ?. ?\d{4})|((0?[1-9]|[12][0-9]|3[01]) ?(Januari|januari|Jan|jan|Februari|februari|Feb|feb|Mars|mars|Mar|mar|April|april|Apr|apr|Maj|maj|Juni|juni|Jun|jun|Juli|juli|Jul|jul|Augusti|augusti|Aug|aug|September|september|Sep|sep|Oktober|oktober|Okt|okt|November|november|Nov|nov|December|december|Dec|dec) ?\d{4})'
+def get_date_from_text(text, ignore_file=False, first_date=False):
+    date_pattern = (r'(\d{4} ?(-|‐) ?(0[1-9]|1[012]) ?(-|‐) ?(0[1-9]|[12][0-9]|3[01]))|((0[1-9]|[12][0-9]|3[01]) ?. ?('
+                    r'0[1-9]|1[012]) ?. ?\d{4})|((0?[1-9]|[12][0-9]|3[01]) ?('
+                    r'Januari|januari|Jan|jan|Februari|februari|Feb|feb|Mars|mars|Mar|mar|April|april|Apr|apr|Maj|maj'
+                    r'|Juni|juni|Jun|jun|Juli|juli|Jul|jul|Augusti|augusti|Aug|aug|September|september|Sep|sep'
+                    r'|Oktober|oktober|Okt|okt|November|november|Nov|nov|December|december|Dec|dec) ?\d{4})')
     date = re.search(date_pattern, text)
     if bool(date):
         temp = date.group()
@@ -140,10 +159,10 @@ def get_date_from_text(text, ignore_file=False, first_date=None):
             return False
         try:
             if date > datetime.now():
-                return get_date_from_text(text[text.find(temp) + len(temp):], 
-                                          ignore_file=ignore_file, 
+                return get_date_from_text(text[text.find(temp) + len(temp):],
+                                          ignore_file=ignore_file,
                                           first_date=first_date)
-            if date < datetime(year=2018, month=1, day=1):
+            if date.year < 2018:
                 if not ignore_file:
                     return get_date_from_text(text[text.find(temp) + len(temp):],
                                               ignore_file=True,
@@ -170,7 +189,7 @@ def get_organ_from_text(text):
 
 
 def is_ignore_file(text, ignore_texts):
-    if [word for word in ignore_texts if word in text]:
-        return True
+    for word in ignore_texts:
+        if word in text:
+            return True
     return False
-

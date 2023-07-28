@@ -100,6 +100,7 @@ class FileDetail(models.Model):
         validators=[FileExtensionValidator(allowed_extensions=['pdf'])]
     )
     text = models.TextField(blank=True)
+    first_page_text = models.TextField(blank=True)
     pages = models.PositiveSmallIntegerField(blank=True, null=True)
     size = models.FloatField(blank=True, null=True)
     source_file_link = models.URLField(blank=True, null=True, max_length=400)

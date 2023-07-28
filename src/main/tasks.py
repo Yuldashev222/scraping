@@ -113,6 +113,7 @@ def detect_pdfs(directory_path, zip_file_model_id):
     os.remove(zip_file_model.zip_file.path)
     print('detect_pdfs ------------------------------------------- end')
 
+
 @shared_task
 def extract_local_pdf(obj_id, pdf_file):
     print('extract_local_pdf ------------------------------------------- start')
@@ -163,17 +164,15 @@ def extract_url_pdf(webpage_url, inform_id):
             logo_id = logo_id.first().id
         r = requests.get(webpage_url, headers=headers_html, allow_redirects=True, verify=False, stream=True)
     except Exception as e:
+        print(str(e))
         print('extract ------------------------------------------- bad url')
         inform.is_completed = True
         inform.save()
-        print(222222222222)
         return
 
     ignore_texts_from_filename = models.IgnoreText.objects.filter(from_filename=True).values_list('text', flat=True)
     ignore_texts_from_first_page = models.IgnoreText.objects.filter(from_filename=False).values_list('text', flat=True)
-    ignore_files = models.IgnoreFile.objects.filter(
-        link=webpage_url
-    ).values_list('source_file_link', flat=True)
+    ignore_files = models.IgnoreFile.objects.filter(link=webpage_url).values_list('source_file_link', flat=True)
     available_files = models.FileDetail.objects.values_list('source_file_link', flat=True)
 
     urllib3.disable_warnings(InsecureRequestWarning)
@@ -204,7 +203,7 @@ def extract_url_pdf(webpage_url, inform_id):
                     threads_running -= 1
                     return
 
-            if 'pdf' not in r.headers.get('content-type', '').lower():
+            if 'pdf' not in r.headers.get('content-type', '').lower():  # last
                 threads_running -= 1
                 with lock:
                     checked_links[url] = 1
@@ -258,6 +257,7 @@ def extract_url_pdf(webpage_url, inform_id):
             print(url)
 
         except Exception as e:
+            print(str(e))
             if 'Exceeded' in str(e) and 'redirects' in str(e):
                 threads_running -= 1
                 with lock:
@@ -279,7 +279,6 @@ def extract_url_pdf(webpage_url, inform_id):
     dup_names = {}
     checked_links = {}
 
-    objs = []
     current_url = r.url
     page_source = r.content
 
@@ -299,14 +298,21 @@ def extract_url_pdf(webpage_url, inform_id):
             continue
 
         if link in ignore_files:
-            print(f'{link}      - --------------------------ignore file')
+            print(f'{link}      ---------------------------ignore file')
             continue
         elif link in available_files:
-            print(f'{link}      - --------------------------available file')
+            print(f'{link}      ---------------------------available file')
             continue
-        elif [text for text in ignore_texts_from_filename if text in view_file_name + str(link).lower()]:
-            print(f'{link}      - --------------------------ignore text')
-            continue
+        else:
+            temp_name = view_file_name + str(link).lower()
+            ignore_text = False
+            for text in ignore_texts_from_filename:
+                if text in temp_name:
+                    print(f'{link}      ---------------------------ignore text')
+                    ignore_text = True
+                    break
+            if ignore_text:
+                continue
 
         kwargs = {'url': link, 'filename': filename, 'view_file_name': view_file_name}
         threading.Thread(target=threaded_extract, kwargs=kwargs).start()
@@ -326,16 +332,15 @@ def extract_url_pdf(webpage_url, inform_id):
             print(f'{pdf_link}---------------------------------ignore date')
             continue
         print(pdf_link)
+
         pdf_name = f'{uuid4()}.pdf'
-        get_organ = False
-        if not inform.organ:
+        get_organ = inform.organ if str(inform.organ) in 'sf' else False
+        if not get_organ:
             source = view_file_name + str(pdf_link)
             if s in source:
                 get_organ = 's'
             elif f in source:
                 get_organ = 'f'
-        else:
-            get_organ = inform.organ if inform.organ in 'sf' else False
 
         if get_organ and bool(date):
             location = f'{inform.country}/{inform.region}/{get_organ}/{date}/'
@@ -345,33 +350,38 @@ def extract_url_pdf(webpage_url, inform_id):
                 os.makedirs(save_dir)
 
             with open(save_path, 'wb') as file:
-                file.write(requests.get(
-                    pdf_link, headers=headers_html, allow_redirects=True, verify=False, stream=True
-                ).content)
-            try:
-                text_in_file, pages = services.get_text_and_pages(save_path)
-            except Exception as e:
-                os.remove(save_path)
-                print(e)
-                continue
-            if services.is_ignore_file(text_in_file[:500], ignore_texts_from_first_page):
-                print(f'{pdf_link}---------------------------------ignore first page')
-                os.remove(save_path)
-                continue
+                file.write(requests.get(pdf_link, headers=headers_html, allow_redirects=True,
+                                        verify=False, stream=True).content)
 
-            objs.append(models.FileDetail(
-                text=text_in_file,
-                pages=pages,
-                size=round(os.path.getsize(save_path) / 1_000_000, 2),
-                country=inform.country,
-                region=inform.region,
-                organ=get_organ,
-                file_date=date,
-                file=location + pdf_name,
-                source_file_link=pdf_link,
-                inform_id=inform_id,
-                logo_id=logo_id
-            ))
+            try:
+                first_page_text = services.get_first_page_text(save_path)
+                if services.is_ignore_file(first_page_text, ignore_texts_from_first_page):
+                    print(f'{pdf_link}---------------------------------ignore first page')
+                    os.remove(save_path)
+                    os.remove(save_path + '.first_page.pdf')
+                    continue
+                os.remove(save_path + '.first_page.pdf')
+                text_in_file, pages = services.get_text_and_pages(save_path)
+
+                models.FileDetail.objects.create(text=text_in_file,
+                                                 first_page_text=first_page_text,
+                                                 pages=pages,
+                                                 size=round(os.path.getsize(save_path) / 1_000_000, 2),
+                                                 country=inform.country,
+                                                 region=inform.region,
+                                                 organ=get_organ,
+                                                 file_date=date,
+                                                 file=location + pdf_name,
+                                                 source_file_link=pdf_link,
+                                                 inform_id=inform_id,
+                                                 logo_id=logo_id)
+            except Exception as e:
+                if os.path.isfile(save_path):
+                    os.remove(save_path)
+                if os.path.isfile(save_path + '.first_page.pdf'):
+                    os.remove(save_path + '.first_page.pdf')
+                print(e)
+
         else:
             location = f'{settings.MEDIA_ROOT}/{inform.country}/{inform.region}/test/'
             save_path = os.path.join(location, pdf_name)
@@ -380,65 +390,59 @@ def extract_url_pdf(webpage_url, inform_id):
                 os.makedirs(save_dir)
 
             with open(save_path, 'wb') as file:
-                file.write(requests.get(
-                    pdf_link, headers=headers_html, allow_redirects=True, verify=False, stream=True
-                ).content)
+                file.write(requests.get(pdf_link, headers=headers_html, allow_redirects=True,
+                                        verify=False, stream=True).content)
 
             try:
+                new_save_path = ''
+                first_page_text = services.get_first_page_text(save_path)
+                if services.is_ignore_file(first_page_text, ignore_texts_from_first_page):
+                    print(f'{pdf_link}---------------------------------ignore first page')
+                    os.remove(save_path)
+                    os.remove(save_path + '.first_page.pdf')
+                    continue
+                os.remove(save_path + '.first_page.pdf')
                 text_in_file, pages = services.get_text_and_pages(save_path)
                 organ, gr_date = (
-                    services.get_organ_from_text(text_in_file[:500]) if not bool(get_organ) else get_organ,
+                    services.get_organ_from_text(first_page_text) if not bool(get_organ) else get_organ,
                     services.get_date_from_text(text_in_file[:4000]) if not bool(date) else date
                 )
-            except Exception as e:
-                os.remove(save_path)
-                print(e)
-                continue
-            if not bool(organ):  # last
-                continue
-            if services.is_ignore_file(text_in_file[:500], ignore_texts_from_first_page):
-                os.remove(save_path)
-                print(f'{pdf_link}                  -------------------ignore first page')
-                continue
+                if gr_date and not is_desired_date(gr_date):
+                    if os.path.isfile(save_path):
+                        os.remove(save_path)
+                    print(f'{pdf_link}                 -------------------------ignore by date')
+                    continue
 
-            if gr_date and not is_desired_date(gr_date):
+                file_date = date or gr_date if bool(date or gr_date) else None
+                location = f'{inform.country}/{inform.region}/{organ}/{file_date}/'
+                new_save_path = os.path.join(f'{settings.MEDIA_ROOT}/{location}', pdf_name)
+                save_dir = os.path.dirname(new_save_path)
+
+                if not os.path.exists(save_dir):
+                    os.makedirs(save_dir)
+                os.rename(save_path, new_save_path)
+                models.FileDetail.objects.create(text=text_in_file,
+                                                 first_page_text=first_page_text,
+                                                 pages=pages,
+                                                 size=round(os.path.getsize(new_save_path) / 1_000_000, 2),
+                                                 country=inform.country,
+                                                 region=inform.region,
+                                                 organ=organ,
+                                                 file_date=file_date,
+                                                 file=location + pdf_name,
+                                                 source_file_link=pdf_link,
+                                                 inform_id=inform_id,
+                                                 logo_id=logo_id)
+
+            except Exception as e:
+                if os.path.isfile(new_save_path):
+                    os.remove(new_save_path)
                 if os.path.isfile(save_path):
                     os.remove(save_path)
-                print(f'{pdf_link}                 -------------------------ignore by date')
-                continue
-            file_date = date or gr_date if bool(date or gr_date) else None
-            location = f'{inform.country}/{inform.region}/{organ}/{file_date}/'
-            new_save_path = os.path.join(f'{settings.MEDIA_ROOT}/{location}', pdf_name)
-            save_dir = os.path.dirname(new_save_path)
-            if not os.path.exists(save_dir):
-                os.makedirs(save_dir)
-            os.rename(save_path, new_save_path)
-            objs.append(models.FileDetail(
-                text=text_in_file,
-                pages=pages,
-                size=round(os.path.getsize(new_save_path) / 1_000_000, 2),
-                country=inform.country,
-                region=inform.region,
-                organ=organ,
-                file_date=file_date,
-                file=location + pdf_name,
-                source_file_link=pdf_link,
-                inform_id=inform_id,
-                logo_id=logo_id,
-            ))
-        print(f'{len(objs)}-------------------------------------------------------')
-        if len(objs) >= 30:
-            models.FileDetail.objects.bulk_create(objs)
-            for i in inform.filedetail_set.order_by('-id')[:len(objs)]:
-                i.save()
-            objs = []
-    models.FileDetail.objects.bulk_create(objs)
-    for i in inform.filedetail_set.order_by('-id')[:len(objs)]:
-        dct = {
-            'file': i.file, 'logo': i.logo, 'id': i.id, 'pages': i.pages, 'size': i.size, 'country': i.country,
-            'region': i.region, 'organ': i.organ, 'file_date': i.file_date, 'text': i.text
-        }
-        i.save()
+                if os.path.isfile(save_path + '.first_page.pdf'):
+                    os.remove(save_path + '.first_page.pdf')
+                print(e)
+
     inform.is_completed = True
     inform.save()
     try:
@@ -506,166 +510,3 @@ def from_excel(excel_file):
         inform = models.Inform.objects.create(**dct)
 
         extract_url_pdf(inform.link, inform.id)
-
-
-def test(webpage_url):
-    print('extract ------------------------------------------- start')
-    try:
-        r = requests.get(webpage_url, headers=headers_html, allow_redirects=True, verify=False, stream=True)
-    except:
-        print(111111111111111111111)
-    ignore_texts_from_filename = models.IgnoreText.objects.filter(from_filename=True).values_list('text', flat=True)
-    ignore_texts_from_first_page = models.IgnoreText.objects.filter(from_filename=False).values_list('text', flat=True)
-    ignore_files = models.IgnoreFile.objects.filter(
-        link=webpage_url
-    ).values_list('source_file_link', flat=True)
-    available_files = models.FileDetail.objects.filter(
-        inform__link=webpage_url
-    ).values_list('source_file_link', flat=True)
-
-    urllib3.disable_warnings(InsecureRequestWarning)
-    lock = threading.Lock()
-
-    threads_running = 0
-
-    def threaded_extract(url, filename, view_file_name, retry=0):
-        nonlocal threads_running
-        if retry > 3:
-            threads_running -= 1
-            with lock:
-                checked_links[url] = 1
-            return
-
-        fname = None
-        try:
-            r = requests.get(url, headers=headers_html, allow_redirects=True, verify=False, stream=True)
-
-            if r.status_code != 200:
-                if r.status_code not in [503, 502, 504]:
-                    retry += 1
-                    return threaded_extract(url, filename, view_file_name, retry=retry)
-                else:
-                    with lock:
-                        checked_links[url] = 1
-
-                    threads_running -= 1
-                    return
-
-            if 'pdf' not in r.headers.get('content-type', '').lower():
-                threads_running -= 1
-                with lock:
-                    checked_links[url] = 1
-                return
-
-            if r.headers.get('content-disposition'):
-                m = re.match(f'(?:{token}\s*;\s*)?(?:{dispositionParm})(?:\s*;\s*(?:{dispositionParm}))*|{token}',
-                             r.headers.get('content-disposition'))
-                if m:
-                    if m.group(8) is not None:
-                        fname = urllib.unquote(m.group(8)).decode(m.group(7))
-
-                    elif m.group(4) is not None:
-                        fname = urllib.unquote(m.group(4)).decode(m.group(3))
-
-                    elif m.group(6) is not None:
-                        fname = re.sub('\\\\(.)', '\1', m.group(6))
-
-                    elif m.group(5) is not None:
-                        fname = m.group(5)
-
-                    elif m.group(2) is not None:
-                        fname = re.sub('\\\\(.)', '\1', m.group(2))
-                    else:
-                        fname = m.group(1)
-                    if fname:
-                        fname = os.path.basename(fname)
-
-            if not fname:
-                fname = filename
-            if not fname:
-                fname = "Document"
-
-            fname = re.sub('[\\/:*?"<>|]', '', fname)
-
-            with lock:
-                if not dup_names.get((fname + '.pdf').lower()):
-                    dup_names[fname + '.pdf'.lower()] = 1
-                    fname = fname + '.pdf'
-                else:
-                    name_c = 1
-                    while True:
-                        fname = fname + f'-{name_c}.pdf'
-                        if not dup_names.get(fname.lower()):
-                            dup_names[fname.lower()] = 1
-                            break
-                        name_c += 1
-
-            pdf_links[url] = fname
-            pdf_view_file_names.append(view_file_name)
-            print(view_file_name)
-
-        except Exception as e:
-            if 'Exceeded' in str(e) and 'redirects' in str(e):
-                threads_running -= 1
-                with lock:
-                    checked_links[url] = 1
-                return
-            retry += 1
-            return threaded_extract(url=url, filename=filename, view_file_name=view_file_name, retry=retry)
-        threads_running -= 1
-
-    if getattr(sys, 'frozen', False):
-        application_path = os.path.dirname(sys.executable)
-    else:
-        application_path = os.path.dirname(os.path.abspath(__file__))
-
-    os.chdir(application_path)
-
-    pdf_links = {}
-    pdf_view_file_names = []
-    dup_names = {}
-    checked_links = {}
-    current_url = r.url
-    page_source = r.content
-
-    soup = BeautifulSoup(page_source, 'lxml')
-
-    print('\nChecking links for pdf...')
-    for a in soup.findAll('a'):
-        link = urljoin(current_url, a.get('href'))
-        link = list(urlparse(link))
-        link[5] = ""
-        link = urlunparse(link)
-        filename = link.split('/')[-1]
-        view_file_name = ' '.join(str(a.text).lower().split()).strip()
-
-        if pdf_links.get(link):
-            continue
-        if checked_links.get(link):
-            continue
-
-        if link in ignore_files:
-            continue
-        elif link in available_files:
-            continue
-        elif [text for text in ignore_texts_from_filename if text in view_file_name + str(link).lower()]:
-            continue
-
-        date = services.get_date_from_text(view_file_name + filename)
-        if date and not date.year >= 2018:
-            continue
-        if 'kommunstyrelsen' in view_file_name:
-            print(view_file_name)
-        kwargs = {'url': link, 'filename': filename, 'view_file_name': view_file_name}
-        threading.Thread(target=threaded_extract, kwargs=kwargs).start()
-        threads_running += 1
-
-    while threads_running > 6:
-        time.sleep(.3)
-
-    print(f'\nFound "{len(pdf_links)}" pdf links.')
-    print('\nDownloading pdfs...\n')
-    pdf_links_copy = pdf_links.copy()
-    for index, (pdf_link, pdf_name) in enumerate(pdf_links_copy.items(), 0):
-        print(pdf_link)
-    print('extract ------------------------------------------- end')
