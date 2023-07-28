@@ -34,10 +34,19 @@ def file_upload_location(obj, file):
 
 
 def myocr(input_file):
-    ocrmypdf.ocr(
-        input_file, input_file, output_type='pdfa',
-        rotate_pages=True, deskew=True, language='swe', skip_text=True
-    )
+
+    ocrmypdf.ocr(input_file=input_file,
+                 output_file=input_file,
+                 deskew=True,
+                 pdfa_image_compression='jpeg',
+                 output_type='pdfa',
+                 skip_big=50,
+                 language='swe',
+                 force_ocr=True)
+#    ocrmypdf.ocr(
+#        input_file, input_file, output_type='pdf',
+#        rotate_pages=True, deskew=True, language='swe', force_ocr=True, max_image_mpixels=30000000
+#    )
 
 
 def get_text_and_pages(pdf_file):
@@ -54,21 +63,99 @@ def get_text_and_pages(pdf_file):
     return text, pages
 
 
-def get_date_from_text(text):
-    date_pattern = r'((\d{4}|\d{2}) ?- ?(0[1-9]|1[012]) ?- ?(0[1-9]|[12][0-9]|3[01]))|((\d{4}|\d{2}) ?(0[1-9]|1[012]) ?(0[1-9]|[12][0-9]|3[01]))'
+swedish_to_english_months = {
+    'Januari': 'January',
+    'januari': 'January',
+    'Jan': 'January',
+    'jan': 'January',
+    'Februari': 'February',
+    'februari': 'February',
+    'Feb': 'February',
+    'feb': 'February',
+    'Mars': 'March',
+    'mars': 'March',
+    'Mar': 'March',
+    'mar': 'March',
+    'April': 'April',
+    'april': 'April',
+    'Apr': 'April',
+    'apr': 'April',
+    'Maj': 'May',
+    'maj': 'May',
+    'Juni': 'June',
+    'juni': 'June',
+    'Jun': 'June',
+    'jun': 'June',
+    'Juli': 'July',
+    'juli': 'July',
+    'Jul': 'July',
+    'jul': 'July',
+    'Augusti': 'August',
+    'augusti': 'August',
+    'Aug': 'August',
+    'aug': 'August',
+    'September': 'September',
+    'september': 'September',
+    'Sep': 'September',
+    'sep': 'September',
+    'Oktober': 'October',
+    'oktober': 'October',
+    'Okt': 'October',
+    'okt': 'October',
+    'November': 'November',
+    'november': 'November',
+    'Nov': 'November',
+    'nov': 'November',
+    'December': 'December',
+    'december': 'December',
+    'Dec': 'December',
+    'dec': 'December'
+}
+
+
+def get_date_from_text(text, ignore_file=False, first_date=None):
+    date_pattern = r'(\d{4} ?(-|‐) ?(0[1-9]|1[012]) ?(-|‐) ?(0[1-9]|[12][0-9]|3[01]))|((0[1-9]|[12][0-9]|3[01]) ?. ?(0[1-9]|1[012]) ?. ?\d{4})|((0?[1-9]|[12][0-9]|3[01]) ?(Januari|januari|Jan|jan|Februari|februari|Feb|feb|Mars|mars|Mar|mar|April|april|Apr|apr|Maj|maj|Juni|juni|Jun|jun|Juli|juli|Jul|jul|Augusti|augusti|Aug|aug|September|september|Sep|sep|Oktober|oktober|Okt|okt|November|november|Nov|nov|December|december|Dec|dec) ?\d{4})'
     date = re.search(date_pattern, text)
     if bool(date):
-        date = ''.join(date.group().split()).replace('-', '')
+        temp = date.group()
+        date = ''.join([i for i in ''.join(date.group().split()) if i.isalpha() or i.isdigit() or i == '.']).strip()
+        if bool(date):
+            try:
+                if date.isdigit():
+                    date = datetime.strptime(date, '%Y%m%d')
+                elif '.' in date:
+                    date = datetime.strptime(date, '%d.%m.%Y')
+                else:
+                    val = list(swedish_to_english_months.keys())
+                    val.sort(key=len)
+                    val.reverse()
+                    for i in val:
+                        if i in str(date):
+                            date = date.replace(i, swedish_to_english_months[i])
+                            date = datetime.strptime(date, '%d%B%Y')
+                            break
+            except ValueError:
+                return False
+        else:
+            return False
         try:
-            if len(date) == 6:
-                date = datetime.strptime(date, '%y%m%d')
-            else:
-                date = datetime.strptime(date, '%Y%m%d')
-        except ValueError:
-            return False
-        if date > datetime.now():  # last
-            return False
-        return date.date()
+            if date > datetime.now():
+                return get_date_from_text(text[text.find(temp) + len(temp):], 
+                                          ignore_file=ignore_file, 
+                                          first_date=first_date)
+            if date < datetime(year=2018, month=1, day=1):
+                if not ignore_file:
+                    return get_date_from_text(text[text.find(temp) + len(temp):],
+                                              ignore_file=True,
+                                              first_date=date.date())
+                return get_date_from_text(text[text.find(temp) + len(temp):],
+                                          ignore_file=ignore_file,
+                                          first_date=first_date)
+            return date.date()
+        except Exception as e:
+            print(date, f'>>> {e}')
+    if ignore_file:
+        return first_date
     return False
 
 
@@ -86,3 +173,4 @@ def is_ignore_file(text, ignore_texts):
     if [word for word in ignore_texts if word in text]:
         return True
     return False
+

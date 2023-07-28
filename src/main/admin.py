@@ -67,7 +67,7 @@ class IgnoreTextAdmin(admin.ModelAdmin):
 @admin.register(models.FileDetail)
 class FileDetailAdmin(admin.ModelAdmin):
     list_display = (
-       'link_id', 'country', 'region', 'organ', 'file_date', 'pages', 'size', 'file'
+       'id', 'link_id', 'country', 'region', 'organ', 'file_date', 'pages', 'size', 'file'
     )
     list_display_links = ('country', 'region', 'organ', 'file_date')
     search_fields = ('inform__id',)

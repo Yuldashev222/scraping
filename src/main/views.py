@@ -1,16 +1,16 @@
 import re
 from datetime import datetime
-from elasticsearch_dsl import Q
 from collections import OrderedDict
+from elasticsearch_dsl import Q
 from rest_framework.response import Response
 from rest_framework.generics import ListAPIView
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated
 
+from .tasks import create_search_detail_obj
+from .enums import InformCountry, InformRegion
 from .models import FileDetail
 from .documents import FileDetailDocument
-from .enums import InformCountry, InformRegion
-from .tasks import create_search_detail_obj
 from .serializers import FileDetailDocumentSerializer
 
 
@@ -49,27 +49,35 @@ class SearchFilesView(ListAPIView):
         b = query.split()
         b.reverse()
         r_query = ' '.join(b)
-        q = Q('bool', must=[
-                Q('regexp', text=f'.*{a}.*'),
-                Q('regexp', text=f'.*{r_query}.*'),
-            ]) | Q(
-            'bool',
-            should=[
-                Q('match_phrase', text={'query': f'.*{a}.*', 'slop': 10}),
-                Q('match_phrase', text={'query': f'.*{r_query}.*', 'slop': 10})
-            ]
-        )
+        add_query = ' '.join(r_query)
+        q = Q('bool',
+              must=[
+                  Q('regexp', text=f'.*{a}.*'),
+                  Q('regexp', text=f'.*{add_query}.*'),
+                  Q('regexp', text=f'.*{r_query}.*'),
+              ]) | Q('bool',
+                     should=[
+                         Q('match_phrase', text={'query': f'.*{a}.*', 'slop': 10}),
+                         Q('match_phrase', text={'query': f'.*{r_query}.*', 'slop': 10})
+                     ])
         return q
 
     @staticmethod
     def ignore_q_expression(query):
-        return Q('bool', must_not=[Q('regexp', text=f'.*{query}.*')])
+        return Q('bool',
+                 must_not=[
+                     Q('regexp', text=f'.*{query}.*'),
+                     Q('regexp', text=f'.*{" ".join(query)}.*'),
+                 ])
 
     @staticmethod
     def exact_q_expression(query):
         return Q(
             'bool',
-            should=[Q('match_phrase', text=query)],
+            should=[
+                Q('match_phrase', text=query),
+                Q('match_phrase', text=' '.join(query)),
+            ],
             minimum_should_match=1
         )
 
@@ -194,3 +202,4 @@ class SearchFilesView(ListAPIView):
             ('count', count),
             ('results', serializer.data)
         ]))
+

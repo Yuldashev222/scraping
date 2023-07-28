@@ -138,8 +138,8 @@ class SearchDetail(models.Model):
 
 
 class IgnoreFile(models.Model):
-    link = models.URLField()
-    source_file_link = models.URLField()
+    link = models.URLField(max_length=500)
+    source_file_link = models.URLField(max_length=500)
     date_added = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

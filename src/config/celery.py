@@ -19,6 +19,6 @@ def debug_task(self):
 app.conf.beat_schedule = {
     'loop-links-in-week': {
         'task': 'main.tasks.loop_links',
-        'schedule': crontab(hour=21, minute=0, day_of_week='sat')
+        'schedule': crontab(hour=12, minute=25, day_of_week='fri')
     }
 }

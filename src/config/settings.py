@@ -9,7 +9,7 @@ env = environ.Env()
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 SECRET_KEY = env("SECRET_KEY")
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ["backend.minalappar.se", "oybekyuldashev.uz", "filer.offentligabeslut.se", "127.0.0.1", "localhost"]
 

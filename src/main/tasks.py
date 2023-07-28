@@ -3,6 +3,7 @@ import re
 import sys
 import time
 import urllib
+import shutil
 import urllib3
 import requests
 import openpyxl
@@ -122,7 +123,10 @@ def extract_local_pdf(obj_id, pdf_file):
         obj.size = round(os.path.getsize(pdf_file) / 1_000_000, 2)
 
         if not obj.file_date:
-            date = services.get_date_from_text(obj.text[:2100])
+            date = services.get_date_from_text(obj.text[:4000])
+            if date and not is_desired_date(date):
+                obj.delete()
+                return
             obj.file_date = date if bool(date) else None
         filename = f'{uuid4()}.pdf'
         location = f'{obj.country}/{obj.region}/{obj.organ}/{obj.file_date}/{filename}'
@@ -384,7 +388,7 @@ def extract_url_pdf(webpage_url, inform_id):
                 text_in_file, pages = services.get_text_and_pages(save_path)
                 organ, gr_date = (
                     services.get_organ_from_text(text_in_file[:500]) if not bool(get_organ) else get_organ,
-                    services.get_date_from_text(text_in_file[:2100]) if not bool(date) else date
+                    services.get_date_from_text(text_in_file[:4000]) if not bool(date) else date
                 )
             except Exception as e:
                 os.remove(save_path)
@@ -422,7 +426,7 @@ def extract_url_pdf(webpage_url, inform_id):
                 inform_id=inform_id,
                 logo_id=logo_id,
             ))
-
+        print(f'{len(objs)}-------------------------------------------------------')
         if len(objs) >= 30:
             models.FileDetail.objects.bulk_create(objs)
             for i in inform.filedetail_set.order_by('-id')[:len(objs)]:
@@ -437,13 +441,17 @@ def extract_url_pdf(webpage_url, inform_id):
         i.save()
     inform.is_completed = True
     inform.save()
+    try:
+        shutil.rmtree(f'{settings.MEDIA_ROOT}{inform.country}/{inform.region}/test/')
+    except FileNotFoundError:
+        pass
     print('extract ------------------------------------------- end')
 
 
 @shared_task
 def loop_links():
     print('loop link ------------------------------------------- start')
-    informs = models.Inform.objects.values_list('link', 'id').order_by('-id')
+    informs = models.Inform.objects.filter(id__lte=933).values_list('link', 'id').order_by('-id')
     for link, inform_id in informs:
         print(f'{inform_id}::: {link}')
         extract_url_pdf(link, inform_id)
