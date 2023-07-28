@@ -14,7 +14,7 @@ from celery import shared_task
 from django.conf import settings
 from django.db.utils import DataError
 from urllib3.exceptions import InsecureRequestWarning
-from urllib.parse import urljoin, urlparse, urlunparse
+from urllib.parse import urljoin, urlparse, urlunparse, unquote
 
 from . import models, enums
 from .enums import s, f
@@ -213,24 +213,28 @@ def extract_url_pdf(webpage_url, inform_id):
                 m = re.match(f'(?:{token}\s*;\s*)?(?:{dispositionParm})(?:\s*;\s*(?:{dispositionParm}))*|{token}',
                              r.headers.get('content-disposition'))
                 if m:
-                    if m.group(8) is not None:
-                        fname = urllib.unquote(m.group(8)).decode(m.group(7))
+                    try:
+                        if m.group(8) is not None:
+                            fname = unquote(m.group(8)).decode(m.group(7))
 
-                    elif m.group(4) is not None:
-                        fname = urllib.unquote(m.group(4)).decode(m.group(3))
+                        elif m.group(4) is not None:
+                            fname = urllib.unquote(m.group(4)).decode(m.group(3))
 
-                    elif m.group(6) is not None:
-                        fname = re.sub('\\\\(.)', '\1', m.group(6))
+                        elif m.group(6) is not None:
+                            fname = re.sub('\\\\(.)', '\1', m.group(6))
 
-                    elif m.group(5) is not None:
-                        fname = m.group(5)
+                        elif m.group(5) is not None:
+                            fname = m.group(5)
 
-                    elif m.group(2) is not None:
-                        fname = re.sub('\\\\(.)', '\1', m.group(2))
-                    else:
-                        fname = m.group(1)
-                    if fname:
-                        fname = os.path.basename(fname)
+                        elif m.group(2) is not None:
+                            fname = re.sub('\\\\(.)', '\1', m.group(2))
+                        else:
+                            fname = m.group(1)
+                        if fname:
+                            fname = os.path.basename(fname)
+
+                    except Exception as e:
+                        print(e)
 
             if not fname:
                 fname = filename
