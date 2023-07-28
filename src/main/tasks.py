@@ -455,7 +455,7 @@ def extract_url_pdf(webpage_url, inform_id):
 @shared_task
 def loop_links():
     print('loop link ------------------------------------------- start')
-    informs = models.Inform.objects.filter(id__lte=933).values_list('link', 'id').order_by('-id')
+    informs = models.Inform.objects.values_list('link', 'id').order_by('id')
     for link, inform_id in informs:
         print(f'{inform_id}::: {link}')
         extract_url_pdf(link, inform_id)
