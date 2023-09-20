@@ -257,10 +257,16 @@ def extract_url_pdf(webpage_url, inform_id):
     checked_links = {}
 
     current_url = r.url
-    page_source = r.content
+    try:
+        page_source = r.content
 
-    soup = BeautifulSoup(page_source, 'lxml')
-
+        soup = BeautifulSoup(page_source, 'lxml')
+    except Exception as e:
+        print(str(e))
+        print('extract ------------------------------------------- bad chunk')
+        inform.is_completed = True
+        inform.save()
+        return
     print('\nChecking links for pdf...')
     for a in soup.findAll('a'):
         link = urljoin(current_url, a.get('href'))
@@ -432,11 +438,19 @@ def extract_url_pdf(webpage_url, inform_id):
 @shared_task
 def loop_links():
     print('loop link ------------------------------------------- start')
-    informs = models.Inform.objects.values_list('link', 'id').order_by('id')
+    informs = models.Inform.objects.exclude(id=1058).filter(id__lt=1058, id__gt=106).values_list('link', 'id').order_by('id')
     for link, inform_id in informs:
         print(f'{inform_id}::: {link}')
         extract_url_pdf(link, inform_id)
     print('loop link ------------------------------------------- end')
+
+
+@shared_task
+def test_test():
+    fs = models.FileDetail.objects.exclude(text='').filter(file_date__isnull=True, id__lt=66711).order_by('-id')
+    for i in fs:
+        print(i.id, i.file)
+        extract_local_pdf(i.id, i.file.path)
 
 
 @shared_task

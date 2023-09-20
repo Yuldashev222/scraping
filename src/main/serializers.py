@@ -28,45 +28,6 @@ class FileDetailDocumentSerializer(serializers.Serializer):
             except:
                 pass
         return obj.text[300:800]
-        # max_len = 400
-        # search_query = self.context['request'].query_params.get('search', '').strip()
-        # if bool(search_query):
-        #     text = ' '.join(str(search_query).split()).lower()
-        #
-        #     required_pattern = r'".{,}"'
-        #     required_text = re.search(required_pattern, text)
-        #     if bool(required_text):
-        #         required_text = required_text.group()
-        #         text = required_text[1:required_text.index('"', 1)].strip()  # last
-        #
-        #     else:
-        #         ignore_pattern = r' -.{,} '
-        #         ignore_texts = re.findall(ignore_pattern, ' ' + text + ' ')
-        #         if bool(ignore_texts):
-        #             for i in ignore_texts[0].split():
-        #                 text = text.replace(i.strip(), '')
-        #
-        #     text = text.strip()
-        #     index = obj.text.find(text)
-        #     if bool(required_text):
-        #         p = rf'\W{text}\W'
-        #         #search_text = re.search(p, obj.text).group()
-        #         #index = obj.text.find(search_text)
-        #     if index == -1:
-        #         for i in text.split():
-        #             index = obj.text.find(i)
-        #             if index != -1:
-        #                 break
-        #         else:
-        #             return obj.text[300:800].strip()
-        #     old_next_symbol_len = abs(max_len - len(text)) // 2
-        #     start = 0 if index - old_next_symbol_len <= 0 else index - old_next_symbol_len
-        #     end = index + len(text) + old_next_symbol_len
-        #     result = obj.text[start:end]
-        #     if len(result) < 400:
-        #         result = result + ' ' + result[end:end + 400 - len(result)]
-        #     return result.strip()
-        # return obj.text[300:800].strip()
 
     def get_country(self, obj):
         return getattr(InformCountry, obj.country).value
@@ -85,3 +46,10 @@ class FileDetailDocumentSerializer(serializers.Serializer):
             request = self.context.get('request')
             return request.build_absolute_uri(obj.file)
         return None
+
+
+class FileDetailDocumentAuthSerializer(FileDetailDocumentSerializer):
+    def get_file(self, obj):
+        return None
+
+

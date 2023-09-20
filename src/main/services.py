@@ -40,7 +40,7 @@ def myocr(input_file):
                  output_type='pdf',
                  skip_big=50,
                  language='swe',
-                 force_ocr=True)
+                 skip_text=True)
 
 
 def first_page_ocr(input_file):
@@ -50,7 +50,7 @@ def first_page_ocr(input_file):
                  output_type='pdf',
                  skip_big=50,
                  language='swe',
-                 force_ocr=True,
+                 skip_text=True,
                  pages='1')
 
 
@@ -129,53 +129,50 @@ swedish_to_english_months = {
 
 
 def get_date_from_text(text, ignore_file=False, first_date=False):
-    date_pattern = (r'(\d{4} ?(-|‐) ?(0[1-9]|1[012]) ?(-|‐) ?(0[1-9]|[12][0-9]|3[01]))|((0[1-9]|[12][0-9]|3[01]) ?. ?('
-                    r'0[1-9]|1[012]) ?. ?\d{4})|((0?[1-9]|[12][0-9]|3[01]) ?('
-                    r'Januari|januari|Jan|jan|Februari|februari|Feb|feb|Mars|mars|Mar|mar|April|april|Apr|apr|Maj|maj'
-                    r'|Juni|juni|Jun|jun|Juli|juli|Jul|jul|Augusti|augusti|Aug|aug|September|september|Sep|sep'
-                    r'|Oktober|oktober|Okt|okt|November|november|Nov|nov|December|december|Dec|dec) ?\d{4})')
+    date_pattern = (r'(\d{4} ?(-|‐) ?(0[1-9]|1[012]) ?(-|‐) ?(0[1-9]|[12][0-9]|3[01]))'
+                    r'|'
+                    r'((0[1-9]|[12][0-9]|3[01])( .|.|. | . )(0[1-9]|1[012])( .|.|. | . )\d{4})'
+                    r'|'
+                    r'((0?[1-9]|[12][0-9]|3[01]) ?'
+                    r'(Januari|januari|Jan|jan|Februari|februari|Feb|feb|Mars|mars|Mar|mar|April|april|Apr|apr|Maj|maj|Juni|juni|Jun|jun|Juli|juli|Jul|jul|Augusti|augusti|Aug|aug|September|september|Sep|sep|Oktober|oktober|Okt|okt|November|november|Nov|nov|December|december|Dec|dec)'
+                    r' ?\d{4})')
     date = re.search(date_pattern, text)
     if bool(date):
         temp = date.group()
-        date = ''.join([i for i in ''.join(date.group().split()) if i.isalpha() or i.isdigit() or i == '.']).strip()
-        if bool(date):
-            try:
-                if date.isdigit():
-                    date = datetime.strptime(date, '%Y%m%d')
-                elif '.' in date:
-                    date = datetime.strptime(date, '%d.%m.%Y')
-                else:
-                    val = list(swedish_to_english_months.keys())
-                    val.sort(key=len)
-                    val.reverse()
-                    for i in val:
-                        if i in str(date):
-                            date = date.replace(i, swedish_to_english_months[i])
-                            date = datetime.strptime(date, '%d%B%Y')
-                            break
-            except ValueError:
-                return False
-        else:
-            return False
+        date = date.group().replace(' ', '').replace('-', '').replace('‐', '')
         try:
-            if date > datetime.now():
-                return get_date_from_text(text[text.find(temp) + len(temp):],
-                                          ignore_file=ignore_file,
-                                          first_date=first_date)
-            if date.year < 2018:
+            if date.isdigit():
+                date = datetime.strptime(date, '%Y%m%d')
+            elif '.' in date:
+                date = datetime.strptime(date, '%d.%m.%Y')
+            else:
+                val = list(swedish_to_english_months.keys())
+                val.sort(key=len)
+                val.reverse()
+                for i in val:
+                    if i in str(date):
+                        date = date.replace(i, swedish_to_english_months[i])
+                        date = datetime.strptime(date, '%d%B%Y')
+                        break
+        except ValueError:
+            return False
+
+        try:
+            if date > datetime.now() or date.year < 2018:
                 if not ignore_file:
-                    return get_date_from_text(text[text.find(temp) + len(temp):],
-                                              ignore_file=True,
-                                              first_date=date.date())
-                return get_date_from_text(text[text.find(temp) + len(temp):],
-                                          ignore_file=ignore_file,
-                                          first_date=first_date)
+                    return get_date_from_text(text[text.index(temp) + len(temp):],
+                                              ignore_file=True, first_date=date.date())
+
+                return get_date_from_text(text[text.index(temp) + len(temp):],
+                                          ignore_file=ignore_file, first_date=first_date)
+
             return date.date()
         except Exception as e:
             print(date, f'>>> {e}')
     if ignore_file:
         return first_date
     return False
+
 
 
 def get_organ_from_text(text):

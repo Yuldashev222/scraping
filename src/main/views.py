@@ -5,19 +5,17 @@ from elasticsearch_dsl import Q
 from rest_framework.response import Response
 from rest_framework.generics import ListAPIView
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAuthenticated
 
 from .tasks import create_search_detail_obj
 from .enums import InformCountry, InformRegion
 from .models import FileDetail
 from .documents import FileDetailDocument
-from .serializers import FileDetailDocumentSerializer
+from .serializers import FileDetailDocumentSerializer, FileDetailDocumentAuthSerializer
 
 
 class CustomPageNumberPagination(PageNumberPagination):
     def get_paginated_response(self, data):
         count = self.page.paginator.count
-        print(count)
         return count
         search_text = self.request.query_params.get('search', '').strip()
         if bool(search_text):
@@ -37,47 +35,34 @@ class CustomPageNumberPagination(PageNumberPagination):
 
 
 class SearchFilesView(ListAPIView):
-    serializer_class = FileDetailDocumentSerializer
     pagination_class = CustomPageNumberPagination
     document_class = FileDetailDocument
     queryset = FileDetail.objects.all()
-    permission_classes = [IsAuthenticated]
+    permission_classes = ()
+
+    def get_serializer_class(self):
+        if self.request.user.is_authenticated:
+            return FileDetailDocumentSerializer
+        return FileDetailDocumentAuthSerializer
 
     @staticmethod
     def all_q_expression(query):
-        a = query
-        b = query.split()
-        b.reverse()
-        r_query = ' '.join(b)
-        add_query = ' '.join(r_query)
-        q = Q('bool',
-              must=[
-                  Q('regexp', text=f'.*{a}.*'),
-                  Q('regexp', text=f'.*{add_query}.*'),
-                  Q('regexp', text=f'.*{r_query}.*'),
-              ]) | Q('bool',
-                     should=[
-                         Q('match_phrase', text={'query': f'.*{a}.*', 'slop': 10}),
-                         Q('match_phrase', text={'query': f'.*{r_query}.*', 'slop': 10})
-                     ])
-        return q
+        add_query = ' '.join(query)
+        return (
+                Q('bool', must=[Q('regexp', text=query + '.*') | Q('regexp', text=add_query + '.*')])
+                |
+                Q('bool', should=[Q('match_phrase', text={'query': query + '.*', 'slop': 10})])
+        )
 
     @staticmethod
     def ignore_q_expression(query):
-        return Q('bool',
-                 must_not=[
-                     Q('regexp', text=f'.*{query}.*'),
-                     Q('regexp', text=f'.*{" ".join(query)}.*'),
-                 ])
+        return Q('bool', must_not=[Q('regexp', text=f'{query}.*') | Q('regexp', text=f'{" ".join(query)}.*')])
 
     @staticmethod
     def exact_q_expression(query):
         return Q(
             'bool',
-            should=[
-                Q('match_phrase', text=query),
-                Q('match_phrase', text=' '.join(query)),
-            ],
+            should=[Q('match_phrase', text=query) | Q('match_phrase', text=' '.join(query))],
             minimum_should_match=1
         )
 
@@ -89,10 +74,7 @@ class SearchFilesView(ListAPIView):
     def date_q_expression(year):
         start_date = datetime(year=year, month=1, day=1)
         end_date = datetime(year=year, month=12, day=31)
-        return Q(
-            'range',
-            file_date={'gte': start_date, 'lte': end_date}
-        )
+        return Q('range', file_date={'gte': start_date, 'lte': end_date})
 
     def get(self, request, *args, **kwargs):
         search_query = str(request.query_params.get('search', '')).strip()
@@ -180,14 +162,12 @@ class SearchFilesView(ListAPIView):
 
         page = request.query_params.get('page', 1)
         try:
-            print((int(page) - 1) * 10, '=====================')
             response = search[(int(page) - 1) * 10:].execute()
-            print((int(page) - 1) * 10, '=====================')
         except Exception as e:
             print(e)
-            print()
             response = search.execute()
-        serializer = self.serializer_class(response, many=True, context={'request': request, 'bol': bol})
+        serializer = self.get_serializer_class()
+        serializer = serializer(response, many=True, context={'request': request, 'bol': bol})
         self.paginate_queryset(search)
         count = self.get_paginated_response(search)
         if bol:
@@ -202,4 +182,3 @@ class SearchFilesView(ListAPIView):
             ('count', count),
             ('results', serializer.data)
         ]))
-
