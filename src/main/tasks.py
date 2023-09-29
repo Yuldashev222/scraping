@@ -438,10 +438,13 @@ def extract_url_pdf(webpage_url, inform_id):
 @shared_task
 def loop_links():
     print('loop link ------------------------------------------- start')
-    informs = models.Inform.objects.exclude(id=1058).filter(id__lt=1058, id__gt=106).values_list('link', 'id').order_by('id')
+    informs = models.Inform.objects.exclude(id__in=[1058, 856, 855, 854, 853, 852], region__in=['sto_nyn', 'vag_fal', 'sto_nac', 'sto_tab']).filter(id__lt=852).values_list('link', 'id').order_by('-id')
     for link, inform_id in informs:
         print(f'{inform_id}::: {link}')
-        extract_url_pdf(link, inform_id)
+        try:
+            extract_url_pdf(link, inform_id)
+        except Exception as e:
+            print(str(e))
     print('loop link ------------------------------------------- end')
 
 

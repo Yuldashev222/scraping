@@ -1,0 +1,23 @@
+[0;1;32m●[0m gunicorn.service - gunicorn daemon
+     Loaded: loaded (/etc/systemd/system/gunicorn.service; enabled; vendor preset: enabled)
+     Active: [0;1;32mactive (running)[0m since Wed 2023-09-20 17:45:45 UTC; 3min 20s ago
+TriggeredBy: [0;1;32m●[0m gunicorn.socket
+   Main PID: 2831702 (gunicorn)
+      Tasks: 4 (limit: 19660)
+     Memory: 278.8M
+     CGroup: /system.slice/gunicorn.service
+             ├─2831702 /var/www/backend/scraping/venv/bin/python /var/www/backend/scraping/venv/bin/gunicorn --access-logfile - --workers 3 --bind unix:/run/gunicorn.sock config.wsgi:application
+             ├─2831704 /var/www/backend/scraping/venv/bin/python /var/www/backend/scraping/venv/bin/gunicorn --access-logfile - --workers 3 --bind unix:/run/gunicorn.sock config.wsgi:application
+             ├─2831705 /var/www/backend/scraping/venv/bin/python /var/www/backend/scraping/venv/bin/gunicorn --access-logfile - --workers 3 --bind unix:/run/gunicorn.sock config.wsgi:application
+             └─2831706 /var/www/backend/scraping/venv/bin/python /var/www/backend/scraping/venv/bin/gunicorn --access-logfile - --workers 3 --bind unix:/run/gunicorn.sock config.wsgi:application
+
+Sep 20 17:48:09 minalappar.se gunicorn[2831705]:     raise e
+Sep 20 17:48:09 minalappar.se gunicorn[2831705]:   File "/var/www/backend/scraping/venv/lib/python3.8/site-packages/elasticsearch/transport.py", line 419, in perform_request
+Sep 20 17:48:09 minalappar.se gunicorn[2831705]:     status, headers_response, data = connection.perform_request(
+Sep 20 17:48:09 minalappar.se gunicorn[2831705]:   File "/var/www/backend/scraping/venv/lib/python3.8/site-packages/elasticsearch/connection/http_urllib3.py", line 277, in perform_request
+Sep 20 17:48:09 minalappar.se gunicorn[2831705]:     self._raise_error(response.status, raw_data)
+Sep 20 17:48:09 minalappar.se gunicorn[2831705]:   File "/var/www/backend/scraping/venv/lib/python3.8/site-packages/elasticsearch/connection/base.py", line 330, in _raise_error
+Sep 20 17:48:09 minalappar.se gunicorn[2831705]:     raise HTTP_EXCEPTIONS.get(status_code, TransportError)(
+Sep 20 17:48:09 minalappar.se gunicorn[2831705]: elasticsearch.exceptions.RequestError: RequestError(400, 'search_phase_execution_exception', 'failed to create query: expected \'"\' at position 9')
+Sep 20 17:48:09 minalappar.se gunicorn[2831705]: Search does not support negative slicing.
+Sep 20 17:48:09 minalappar.se gunicorn[2831705]:  - - [20/Sep/2023:19:48:09 +0200] "GET /files/?search=%22enskilt%20-avlopp%22&page=0 HTTP/1.0" 500 164480 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
