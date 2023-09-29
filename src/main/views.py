@@ -47,17 +47,7 @@ class SearchFilesView(ListAPIView):
 
     @staticmethod
     def all_q_expression(query):
-        query_lst = query.split()
-        last_word = query_lst.pop(-1)
-        q1 = Q('match_phrase', text={'query': query, 'slop': 10})
-        q2 = Q(
-            'bool',
-            must=[
-                Q('match_phrase', text={'query': ' '.join(query_lst), 'slop': 10}),
-                Q('wildcard', text=last_word + '*')
-            ]
-        )
-        return q1 | q2
+        return Q('match_phrase', text={'query': query, 'slop': 10})
 
     @staticmethod
     def ignore_q_expression(query):
@@ -128,7 +118,9 @@ class SearchFilesView(ListAPIView):
             # ---------------------
 
             # all expression
-            search = search.query(self.all_q_expression(search_query.replace('"', '').strip()))
+            a_search_query = search_query.replace('"', '').strip().split()
+            search = search.query(self.all_q_expression(' '.join(a_search_query[:-1])))
+            search = search.query(Q('wildcard', text=a_search_query[-1] + '*'))
             # -------------
 
             # required text expression
