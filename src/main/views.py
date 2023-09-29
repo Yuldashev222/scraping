@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework.generics import ListAPIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.exceptions import ValidationError
+
 from .tasks import create_search_detail_obj
 from .enums import InformCountry, InformRegion
 from .models import FileDetail
@@ -49,9 +50,8 @@ class SearchFilesView(ListAPIView):
         query_lst = query.split()
         last_word = query_lst.pop(-1)
         q1 = Q('match_phrase', text={'query': query, 'slop': 10})
-        must = [Q('match_phrase', text=word) for word in query_lst] + [Q('wildcard', text=last_word + '*')]
-        q3 = Q('bool', must=must)
-        return q1 | q3
+        q2 = Q('bool', must=[q1, Q('wildcard', text=last_word + '*')])
+        return q1 | q2
 
     @staticmethod
     def ignore_q_expression(query):
@@ -112,31 +112,31 @@ class SearchFilesView(ListAPIView):
             search_query = ' '.join(search_query.split()).lower()
             s_copy = search_query
 
-            # required text expression
-            required_pattern = r'".{,}"'
-            required_text = re.search(required_pattern, search_query)
-            if bool(required_text):
-                required_text = required_text.group()
-                search_query = search_query.replace(required_text, '').strip()
-                required_text = required_text.replace('"', '').strip()
-                search = search.query(self.exact_q_expression(required_text))
-            # ----------------
-
             # ignore text expression
-            ignore_texts = list(filter(lambda el: el[0] == '-', str(' ' + search_query + ' ').split()))
-            if ignore_texts:
-                for i in ignore_texts:
-                    search = search.query(self.ignore_q_expression(i.replace('-', '')))
-                    search_query = search_query.replace(i, '').strip()
+            for word in search_query.split()[::-1]:
+                if word[0] != '-':
+                    break
+                search = search.query(self.ignore_q_expression(word[1:]))
+                search_query = search_query.replace(word, '')
+            search_query = search_query.strip()
             # ---------------------
 
             # all expression
-            if not bool(required_text) and bool(search_query.strip()):  # last
-                search = search.query(self.all_q_expression(search_query.strip()))
+            search = search.query(self.all_q_expression(search_query.replace('"', '').strip()))
             # -------------
+
+            # required text expression
+            required_pattern = r'".*?"'
+            required_text_list = re.findall(required_pattern, search_query)
+            if required_text_list:
+                for required_text in required_text_list:
+                    search = search.query(self.exact_q_expression(required_text.replace('"', '')))
+                    search_query = search_query.replace(required_text, '')
+            # ----------------
 
             search = search.highlight('text', fragment_size=130, pre_tags='<mark>', post_tags='</mark>',
                                       max_analyzed_offset=500000)
+
         else:
             search = search.sort('-file_date')
 
