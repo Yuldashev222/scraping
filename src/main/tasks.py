@@ -16,6 +16,7 @@ from django.db.utils import DataError
 from urllib3.exceptions import InsecureRequestWarning
 from urllib.parse import urljoin, urlparse, urlunparse, unquote
 
+from scraping.models import Scraping
 from . import models, enums
 from .enums import s, f
 from . import services
@@ -436,15 +437,30 @@ def extract_url_pdf(webpage_url, inform_id):
 
 
 @shared_task
-def loop_links():
+def loop_links(start_inform_id):
     print('loop link ------------------------------------------- start')
-    informs = models.Inform.objects.exclude(id__in=[1058, 856, 855, 854, 853, 852], region__in=['sto_nyn', 'vag_fal', 'sto_nac', 'sto_tab']).filter(id__lt=852).values_list('link', 'id').order_by('-id')
+    if start_inform_id == 0:
+        max_inform_id = models.Inform.objects.aggregate(mx=models.models.Max('id'))['mx']
+        if max_inform_id:
+            start_inform_id = max_inform_id
+    informs = models.Inform.objects.exclude(id__in=[1058, 856, 855, 854, 853, 852], region__in=['sto_nyn', 'vag_fal', 'sto_nac', 'sto_tab']).filter(id__lte=start_inform_id).values_list('link', 'id').order_by('-id')
     for link, inform_id in informs:
+        obj = Scraping.objects.first()
+        if obj and obj.play:
+            print('loop link ------------------------------------------- pause')
+            obj.pause_inform_id = inform_id
+            obj.save()
+            return
         print(f'{inform_id}::: {link}')
         try:
             extract_url_pdf(link, inform_id)
         except Exception as e:
             print(str(e))
+
+    obj = Scraping.objects.first()
+    if obj:
+        obj.pause_inform_id = 0
+        obj.save()
     print('loop link ------------------------------------------- end')
 
 

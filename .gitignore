@@ -1,5 +1,6 @@
 # my ignore files
 src/sc_db
+sc_db
 dump.rdb
 #settings.py
 links/
