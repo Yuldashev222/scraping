@@ -50,7 +50,13 @@ class SearchFilesView(ListAPIView):
         query_lst = query.split()
         last_word = query_lst.pop(-1)
         q1 = Q('match_phrase', text={'query': query, 'slop': 10})
-        q2 = Q('bool', must=[q1, Q('wildcard', text=last_word + '*')])
+        q2 = Q(
+            'bool',
+            must=[
+                Q('match_phrase', text={'query': ' '.join(query_lst), 'slop': 10}),
+                Q('wildcard', text=last_word + '*')
+            ]
+        )
         return q1 | q2
 
     @staticmethod
