@@ -446,7 +446,7 @@ def loop_links(start_inform_id):
     informs = models.Inform.objects.exclude(id__in=[1058, 856, 855, 854, 853, 852], region__in=['sto_nyn', 'vag_fal', 'sto_nac', 'sto_tab']).filter(id__lte=start_inform_id).values_list('link', 'id').order_by('-id')
     for link, inform_id in informs:
         obj = Scraping.objects.first()
-        if obj and obj.play:
+        if obj and not obj.play:
             print('loop link ------------------------------------------- pause')
             obj.pause_inform_id = inform_id
             obj.save()
