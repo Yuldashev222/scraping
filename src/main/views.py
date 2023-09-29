@@ -119,7 +119,8 @@ class SearchFilesView(ListAPIView):
 
             # all expression
             a_search_query = search_query.replace('"', '').strip().split()
-            search = search.query(self.all_q_expression(' '.join(a_search_query[:-1])))
+            if len(a_search_query) > 1:
+                search = search.query(self.all_q_expression(' '.join(a_search_query[:-1])))
             search = search.query(Q('wildcard', text=a_search_query[-1] + '*'))
             # -------------
 
