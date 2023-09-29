@@ -47,7 +47,14 @@ class SearchFilesView(ListAPIView):
 
     @staticmethod
     def all_q_expression(query):
-        return Q('match_phrase', text={'query': query, 'slop': 10})
+        query_list = query.split()
+        last_word = query_list.pop(-1)
+        clauses = []
+        for word in query_list:
+            clauses.append(Q('span_term', text=word))
+        clauses.append(Q('span_multi', match=Q('wildcard', text=last_word + '*')))
+
+        return Q('span_near', clauses=clauses, slop=10, in_order=False)
 
     @staticmethod
     def ignore_q_expression(query):
@@ -118,10 +125,9 @@ class SearchFilesView(ListAPIView):
             # ---------------------
 
             # all expression
-            a_search_query = search_query.replace('"', '').strip().split()
-            if len(a_search_query) > 1:
-                search = search.query(self.all_q_expression(' '.join(a_search_query[:-1])))
-            search = search.query(Q('wildcard', text=a_search_query[-1] + '*'))
+            a_search_query = search_query.replace('"', '').strip()
+            if a_search_query:
+                search = search.query(self.all_q_expression(a_search_query))
             # -------------
 
             # required text expression
