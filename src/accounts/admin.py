@@ -40,3 +40,6 @@ class CustomUserAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         return super().get_queryset(request).filter(is_staff=True)
+
+    def has_delete_permission(self, request, obj=None):
+        return False
