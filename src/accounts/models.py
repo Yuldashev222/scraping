@@ -6,8 +6,7 @@ from django.core.validators import MaxValueValidator
 from django.contrib.auth.models import AbstractUser, UserManager, apps
 from phonenumber_field.modelfields import PhoneNumberField
 
-from main.enums import InformRegion
-from .validators import validate_ipaddress, first_part_validate_ipaddress
+from .validators import first_part_validate_ipaddress
 
 
 class RangeIpAddress(models.Model):
