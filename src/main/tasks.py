@@ -2,7 +2,6 @@ import os
 import re
 import sys
 import time
-import urllib
 import shutil
 import urllib3
 import requests
@@ -54,9 +53,7 @@ def detect_pdfs(directory_path, zip_file_model_id):
     for region in regions:
         normalizing_region = ' '.join(region.split()).strip().lower()
         try:
-            model_region = enums.InformRegion.choices()[
-                enums.InformRegion.values().index(normalizing_region)
-            ][0]
+            model_region = enums.InformRegion.choices()[enums.InformRegion.values().index(normalizing_region)][0]
         except ValueError:
             continue
 
@@ -95,14 +92,12 @@ def detect_pdfs(directory_path, zip_file_model_id):
                             file_format = file_format.replace('docx', 'pdf').replace('doc', 'pdf').replace('rtf', 'pdf')
                             pdf_file = '.'.join(pdf_file.split('.')[:-1]) + f'.{file_format}'
 
-                        obj = models.FileDetail.objects.create(
-                            country=model_region[:3],
-                            region=model_region,
-                            organ=model_organ,
-                            zip_file_id=zip_file_model_id,
-                            logo_id=models.Logo.objects.get(region=model_region).id,
-                            file=f'zip_files/{directory_path.split("/")[-1]}/{region}/{organ}/{year}/{pdf_file}'
-                        )
+                        obj = models.FileDetail.objects.create(country=model_region[:3],
+                                                               region=model_region,
+                                                               organ=model_organ,
+                                                               zip_file_id=zip_file_model_id,
+                                                               logo_id=models.Logo.objects.get(region=model_region).id,
+                                                               file=f'zip_files/{directory_path.split("/")[-1]}/{region}/{organ}/{year}/{pdf_file}')
                         cnt += 1
                         extract_local_pdf(obj.id, obj.file.path)
                 except:
@@ -126,7 +121,7 @@ def extract_local_pdf(obj_id, pdf_file):
 
         if not obj.file_date:
             date = services.get_date_from_text(obj.text[:4000])
-            if date and not is_desired_date(date):
+            if date and not services.is_desired_date(date):
                 obj.delete()
                 return
             obj.file_date = date if bool(date) else None
@@ -144,10 +139,6 @@ def extract_local_pdf(obj_id, pdf_file):
         obj.pages = 1
         obj.save()
     print('extract_local_pdf ------------------------------------------- end')
-
-
-def is_desired_date(date):
-    return True if date.year >= 2018 else False
 
 
 @shared_task
@@ -170,11 +161,6 @@ def extract_url_pdf(webpage_url, inform_id):
         inform.is_completed = True
         inform.save()
         return
-
-    ignore_texts_from_filename = models.IgnoreText.objects.filter(from_filename=True).values_list('text', flat=True)
-    ignore_texts_from_first_page = models.IgnoreText.objects.filter(from_filename=False).values_list('text', flat=True)
-    ignore_files = models.IgnoreFile.objects.filter(link=webpage_url).values_list('source_file_link', flat=True)
-    available_files = models.FileDetail.objects.values_list('source_file_link', flat=True)
 
     urllib3.disable_warnings(InsecureRequestWarning)
     lock = threading.Lock()
@@ -268,7 +254,9 @@ def extract_url_pdf(webpage_url, inform_id):
         inform.is_completed = True
         inform.save()
         return
+
     print('\nChecking links for pdf...')
+    ignore_texts_from_filename = models.IgnoreText.objects.filter(from_filename=True)
     for a in soup.findAll('a'):
         link = urljoin(current_url, a.get('href'))
         link = list(urlparse(link))
@@ -281,21 +269,25 @@ def extract_url_pdf(webpage_url, inform_id):
         if checked_links.get(link):
             continue
 
-        if link in ignore_files:
+        if models.UnnecessaryFile.objects.filter(inform=inform, pdf_link=link).exists():
+            print(f'{link}      ---------------------------unnecessary file')
+            continue
+        elif models.IgnoreFile.objects.filter(link=webpage_url, source_file_link=link).exists():
             print(f'{link}      ---------------------------ignore file')
             continue
-        elif link in available_files:
+        elif models.FileDetail.objects.filter(source_file_link=link).exists():
             print(f'{link}      ---------------------------available file')
             continue
         else:
             temp_name = view_file_name + str(link).lower()
             ignore_text = False
-            for text in ignore_texts_from_filename:
-                if text in temp_name:
+            for obj in ignore_texts_from_filename:
+                if obj.tex in temp_name:
                     print(f'{link}      ---------------------------ignore text')
                     ignore_text = True
                     break
             if ignore_text:
+                models.UnnecessaryFile.objects.get_or_create(inform=inform, pdf_link=link)
                 continue
 
         kwargs = {'url': link, 'filename': filename, 'view_file_name': view_file_name}
@@ -306,14 +298,17 @@ def extract_url_pdf(webpage_url, inform_id):
         time.sleep(.3)
 
     print(f'\nFound "{len(pdf_links)}" pdf links.')
+
+    ignore_texts_from_first_page = models.IgnoreText.objects.filter(from_filename=False)
     print('\nDownloading pdfs...\n')
     pdf_links_copy = pdf_links.copy()
     for index, (pdf_link, pdf_name) in enumerate(pdf_links_copy.items(), 0):
         view_file_name = pdf_view_file_names[index]
 
         date = services.get_date_from_text(view_file_name + str(pdf_name))
-        if date and not is_desired_date(date):
+        if date and not services.is_desired_date(date):
             print(f'{pdf_link}---------------------------------ignore date')
+            models.UnnecessaryFile.objects.get_or_create(inform=inform, pdf_link=pdf_link)
             continue
         print(pdf_link)
 
@@ -334,13 +329,14 @@ def extract_url_pdf(webpage_url, inform_id):
                 os.makedirs(save_dir)
 
             with open(save_path, 'wb') as file:
-                file.write(requests.get(pdf_link, headers=headers_html, allow_redirects=True,
-                                        verify=False, stream=True).content)
+                file.write(requests.get(
+                    pdf_link, headers=headers_html, allow_redirects=True, verify=False, stream=True).content)
 
             try:
                 first_page_text = services.get_first_page_text(save_path)
                 if services.is_ignore_file(first_page_text, ignore_texts_from_first_page):
                     print(f'{pdf_link}---------------------------------ignore first page')
+                    models.UnnecessaryFile.objects.get_or_create(inform=inform, pdf_link=pdf_link)
                     os.remove(save_path)
                     os.remove(save_path + '.first_page.pdf')
                     continue
@@ -360,6 +356,7 @@ def extract_url_pdf(webpage_url, inform_id):
                                                  inform_id=inform_id,
                                                  logo_id=logo_id)
             except Exception as e:
+                models.UnnecessaryFile.objects.get_or_create(inform=inform, pdf_link=pdf_link)
                 if os.path.isfile(save_path):
                     os.remove(save_path)
                 if os.path.isfile(save_path + '.first_page.pdf'):
@@ -374,14 +371,15 @@ def extract_url_pdf(webpage_url, inform_id):
                 os.makedirs(save_dir)
 
             with open(save_path, 'wb') as file:
-                file.write(requests.get(pdf_link, headers=headers_html, allow_redirects=True,
-                                        verify=False, stream=True).content)
+                file.write(requests.get(
+                    pdf_link, headers=headers_html, allow_redirects=True, verify=False, stream=True).content)
 
             try:
                 new_save_path = ''
                 first_page_text = services.get_first_page_text(save_path)
                 if services.is_ignore_file(first_page_text, ignore_texts_from_first_page):
                     print(f'{pdf_link}---------------------------------ignore first page')
+                    models.UnnecessaryFile.objects.get_or_create(inform=inform, pdf_link=pdf_link)
                     os.remove(save_path)
                     os.remove(save_path + '.first_page.pdf')
                     continue
@@ -391,7 +389,7 @@ def extract_url_pdf(webpage_url, inform_id):
                     services.get_organ_from_text(first_page_text) if not bool(get_organ) else get_organ,
                     services.get_date_from_text(text_in_file[:4000]) if not bool(date) else date
                 )
-                if gr_date and not is_desired_date(gr_date):
+                if gr_date and not services.is_desired_date(gr_date):
                     if os.path.isfile(save_path):
                         os.remove(save_path)
                     print(f'{pdf_link}                 -------------------------ignore by date')
@@ -419,6 +417,7 @@ def extract_url_pdf(webpage_url, inform_id):
                                                  logo_id=logo_id)
 
             except Exception as e:
+                models.UnnecessaryFile.objects.get_or_create(inform=inform, pdf_link=pdf_link)
                 if os.path.isfile(new_save_path):
                     os.remove(new_save_path)
                 if os.path.isfile(save_path):
@@ -443,7 +442,9 @@ def loop_links(start_inform_id):
         max_inform_id = models.Inform.objects.aggregate(mx=models.models.Max('id'))['mx']
         if max_inform_id:
             start_inform_id = max_inform_id
-    informs = models.Inform.objects.exclude(id__in=[1058, 856, 855, 854, 853, 852], region__in=['sto_nyn', 'vag_fal', 'sto_nac', 'sto_tab']).filter(id__lte=start_inform_id).values_list('link', 'id').order_by('-id')
+    informs = models.Inform.objects.exclude(id__in=[1058, 856, 855, 854, 853, 852],
+                                            region__in=['sto_nyn', 'vag_fal', 'sto_nac', 'sto_tab']).filter(
+        id__lte=start_inform_id).values_list('link', 'id').order_by('-id')
     for link, inform_id in informs:
         obj = Scraping.objects.first()
         if obj and not obj.play:
@@ -462,14 +463,6 @@ def loop_links(start_inform_id):
         obj.pause_inform_id = 0
         obj.save()
     print('loop link ------------------------------------------- end')
-
-
-@shared_task
-def test_test():
-    fs = models.FileDetail.objects.exclude(text='').filter(file_date__isnull=True, id__lt=66711).order_by('-id')
-    for i in fs:
-        print(i.id, i.file)
-        extract_local_pdf(i.id, i.file.path)
 
 
 @shared_task

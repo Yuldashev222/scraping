@@ -54,6 +54,10 @@ def first_page_ocr(input_file):
                  pages='1')
 
 
+def is_desired_date(date):
+    return True if date.year >= 2018 else False
+
+
 def get_first_page_text(pdf_file):
     first_page_ocr(pdf_file)
     with open(pdf_file + '.first_page.pdf', 'rb') as file:
@@ -174,7 +178,6 @@ def get_date_from_text(text, ignore_file=False, first_date=False):
     return False
 
 
-
 def get_organ_from_text(text):
     if s in text and f in text:
         return 's' if text.index(s) < text.index(f) else 'f'
@@ -186,7 +189,7 @@ def get_organ_from_text(text):
 
 
 def is_ignore_file(text, ignore_texts):
-    for word in ignore_texts:
-        if word in text:
+    for obj in ignore_texts:
+        if obj.text in text:
             return True
     return False

@@ -157,3 +157,8 @@ class IgnoreText(models.Model):
     def save(self, *args, **kwargs):
         self.text = ' '.join(self.text.split()).strip().lower()
         super().save(*args, **kwargs)
+
+
+class UnnecessaryFile(models.Model):
+    inform = models.ForeignKey(Inform, on_delete=models.CASCADE)
+    pdf_link = models.CharField(max_length=500)
