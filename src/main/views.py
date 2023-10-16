@@ -136,16 +136,14 @@ class SearchFilesView(ListAPIView):
             search = search.highlight('text', fragment_size=130, pre_tags='<mark>', post_tags='</mark>',
                                       max_analyzed_offset=500000)
 
-        else:
-            search = search.sort('-file_date')
-
-        if bool(ordering_query):
             if ordering_query == '-file_date':
                 search = search.sort('-file_date')
-            if ordering_query == 'file_date':
-                search = search.sort('file_date')
             else:
                 search = search.sort({"_score": {"order": "desc"}})
+
+
+        else:
+            search = search.sort('-file_date')
 
         try:
             response = search[(int(page) - 1) * 10:].execute()

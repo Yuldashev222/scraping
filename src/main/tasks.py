@@ -282,7 +282,7 @@ def extract_url_pdf(webpage_url, inform_id):
             temp_name = view_file_name + str(link).lower()
             ignore_text = False
             for obj in ignore_texts_from_filename:
-                if obj.tex in temp_name:
+                if obj.text in temp_name:
                     print(f'{link}      ---------------------------ignore text')
                     ignore_text = True
                     break

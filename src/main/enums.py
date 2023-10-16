@@ -84,7 +84,7 @@ class InformRegion(Enum):
     dal_rat = 'Rättvik'
     dal_sme = 'Smedjebacken'
     dal_sat = 'Säter'
-    dal_van = 'Vansabro'
+    dal_van = 'Vansbro'
     dal_alv = 'Älvdalen'
 
     got_got = 'Gotland'
