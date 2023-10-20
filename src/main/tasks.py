@@ -15,7 +15,7 @@ from django.db.utils import DataError
 from urllib3.exceptions import InsecureRequestWarning
 from urllib.parse import urljoin, urlparse, urlunparse, unquote
 
-from scraping.models import Scraping
+from scraping.models import Scraping, UnnecessaryFile
 from . import models, enums
 from .enums import s, f
 from . import services
@@ -76,14 +76,10 @@ def detect_pdfs(directory_path, zip_file_model_id):
             for year in years:
                 try:
                     pdf_files = os.listdir(os.path.join(years_path, year))
-                    print(len(pdf_files))
-                    print('============================')
-
                     for pdf_file in pdf_files:
                         location = f'{directory_path}/{region}/{organ}/{year}/{pdf_file}'
                         pdf_file = "".join(pdf_file.split())
                         file_format = pdf_file.split('.')[-1].lower()
-                        print(file_format)
                         normalize_location = f'{directory_path}/{region}/{organ}/{year}/{pdf_file}'
                         os.rename(location, normalize_location)
                         if file_format in 'docxrtf':
@@ -269,7 +265,7 @@ def extract_url_pdf(webpage_url, inform_id):
         if checked_links.get(link):
             continue
 
-        if models.UnnecessaryFile.objects.filter(inform=inform, pdf_link=link).exists():
+        if UnnecessaryFile.objects.filter(inform=inform, pdf_link=link).exists():
             print(f'{link}      ---------------------------unnecessary file')
             continue
         elif models.IgnoreFile.objects.filter(link=webpage_url, source_file_link=link).exists():
@@ -287,7 +283,7 @@ def extract_url_pdf(webpage_url, inform_id):
                     ignore_text = True
                     break
             if ignore_text:
-                models.UnnecessaryFile.objects.get_or_create(inform=inform, pdf_link=link)
+                UnnecessaryFile.objects.get_or_create(inform=inform, pdf_link=link)
                 continue
 
         kwargs = {'url': link, 'filename': filename, 'view_file_name': view_file_name}
@@ -297,7 +293,8 @@ def extract_url_pdf(webpage_url, inform_id):
     while threads_running > 6:
         time.sleep(.3)
 
-    print(f'\nFound "{len(pdf_links)}" pdf links.')
+    len_pdfs = len(pdf_links)
+    print(f'\nFound "{len_pdfs}" pdf links.')
 
     ignore_texts_from_first_page = models.IgnoreText.objects.filter(from_filename=False)
     print('\nDownloading pdfs...\n')
@@ -308,7 +305,7 @@ def extract_url_pdf(webpage_url, inform_id):
         date = services.get_date_from_text(view_file_name + str(pdf_name))
         if date and not services.is_desired_date(date):
             print(f'{pdf_link}---------------------------------ignore date')
-            models.UnnecessaryFile.objects.get_or_create(inform=inform, pdf_link=pdf_link)
+            UnnecessaryFile.objects.get_or_create(inform=inform, pdf_link=pdf_link)
             continue
         print(pdf_link)
 
@@ -333,10 +330,10 @@ def extract_url_pdf(webpage_url, inform_id):
                     pdf_link, headers=headers_html, allow_redirects=True, verify=False, stream=True).content)
 
             try:
-                first_page_text = services.get_first_page_text(save_path)
+                first_page_text = services.get_pages_text(save_path)
                 if services.is_ignore_file(first_page_text, ignore_texts_from_first_page):
                     print(f'{pdf_link}---------------------------------ignore first page')
-                    models.UnnecessaryFile.objects.get_or_create(inform=inform, pdf_link=pdf_link)
+                    UnnecessaryFile.objects.get_or_create(inform=inform, pdf_link=pdf_link)
                     os.remove(save_path)
                     os.remove(save_path + '.first_page.pdf')
                     continue
@@ -356,7 +353,7 @@ def extract_url_pdf(webpage_url, inform_id):
                                                  inform_id=inform_id,
                                                  logo_id=logo_id)
             except Exception as e:
-                models.UnnecessaryFile.objects.get_or_create(inform=inform, pdf_link=pdf_link)
+                UnnecessaryFile.objects.get_or_create(inform=inform, pdf_link=pdf_link)
                 if os.path.isfile(save_path):
                     os.remove(save_path)
                 if os.path.isfile(save_path + '.first_page.pdf'):
@@ -376,10 +373,10 @@ def extract_url_pdf(webpage_url, inform_id):
 
             try:
                 new_save_path = ''
-                first_page_text = services.get_first_page_text(save_path)
+                first_page_text = services.get_pages_text(save_path)
                 if services.is_ignore_file(first_page_text, ignore_texts_from_first_page):
                     print(f'{pdf_link}---------------------------------ignore first page')
-                    models.UnnecessaryFile.objects.get_or_create(inform=inform, pdf_link=pdf_link)
+                    UnnecessaryFile.objects.get_or_create(inform=inform, pdf_link=pdf_link)
                     os.remove(save_path)
                     os.remove(save_path + '.first_page.pdf')
                     continue
@@ -387,7 +384,7 @@ def extract_url_pdf(webpage_url, inform_id):
                 text_in_file, pages = services.get_text_and_pages(save_path)
                 organ, gr_date = (
                     services.get_organ_from_text(first_page_text) if not bool(get_organ) else get_organ,
-                    services.get_date_from_text(text_in_file[:4000]) if not bool(date) else date
+                    services.get_date_from_text(first_page_text) if not bool(date) else date
                 )
                 if gr_date and not services.is_desired_date(gr_date):
                     if os.path.isfile(save_path):
@@ -417,7 +414,7 @@ def extract_url_pdf(webpage_url, inform_id):
                                                  logo_id=logo_id)
 
             except Exception as e:
-                models.UnnecessaryFile.objects.get_or_create(inform=inform, pdf_link=pdf_link)
+                UnnecessaryFile.objects.get_or_create(inform=inform, pdf_link=pdf_link)
                 if os.path.isfile(new_save_path):
                     os.remove(new_save_path)
                 if os.path.isfile(save_path):
@@ -427,6 +424,7 @@ def extract_url_pdf(webpage_url, inform_id):
                 print(e)
 
     inform.is_completed = True
+    inform.new_pdfs = True if len_pdfs > 0 else False
     inform.save()
     try:
         shutil.rmtree(f'{settings.MEDIA_ROOT}{inform.country}/{inform.region}/test/')

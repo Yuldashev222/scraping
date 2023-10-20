@@ -67,7 +67,7 @@ class IgnoreTextAdmin(admin.ModelAdmin):
 @admin.register(models.FileDetail)
 class FileDetailAdmin(admin.ModelAdmin):
     list_display = (
-       'id', 'link_id', 'country', 'region', 'organ', 'file_date', 'pages', 'size', 'file'
+       'id', 'link_id', 'country', 'region', 'organ', 'file_date', 'pages', 'size', 'is_active', 'file'
     )
     list_display_links = ('country', 'region', 'organ', 'file_date')
     search_fields = ('inform__id',)
@@ -92,6 +92,7 @@ class FileDetailAdmin(admin.ModelAdmin):
         'file_date',
         'pages',
         'size',
+        'is_active',
         'text',
     )
     readonly_fields = ('pages', 'logo', 'size', 'text', 'source_file_link')
@@ -139,13 +140,16 @@ class FileDetailAdmin(admin.ModelAdmin):
 
 @admin.register(models.Inform)
 class InformAdmin(admin.ModelAdmin):
-    list_display = ('id', 'country', 'region', 'organ', 'is_completed', 'date_created', 'source_link')
+    list_display = ('id', 'country', 'region', 'organ', 'is_completed', 'new_pdfs', 'date_created', 'source_link')
     list_display_links = ('id', 'date_created')
     search_fields = ('link', 'desc')
     list_per_page = 20
-    readonly_fields = ('is_completed',)
+    readonly_fields = ('is_completed', 'pdfs_count', 'new_pdfs')
     search_help_text = 'sök med länk och beskrivning'
-    list_filter = (('id', NumericRangeFilter), 'is_completed', 'organ', 'country', 'region')
+    list_filter = (('id', NumericRangeFilter), 'new_pdfs', 'is_completed', 'organ', 'country', 'region')
+
+    def has_change_permission(self, request, obj=None):
+        return False
 
     def source_link(self, obj):
         return format_html(f"<a href='{obj.link}'>{obj.link}")

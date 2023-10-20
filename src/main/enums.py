@@ -1,7 +1,10 @@
 from enum import Enum
 
+exact_words = ['juster']
+
 s = 'kommunstyrelsen'
 f = 'kommunfullmäktige'
+p = 'protokoll'
 ORGANS = (
     ('s', s),
     ('f', f)

@@ -60,6 +60,7 @@ class Inform(models.Model):
     pdfs_count = models.PositiveSmallIntegerField(default=0)
     date_created = models.DateTimeField('date added', auto_now_add=True)
     is_completed = models.BooleanField(verbose_name='är klart', default=False)
+    new_pdfs = models.BooleanField(default=True)
 
     def __str__(self):
         return f'{self.pk}: {self.link}'
@@ -106,6 +107,7 @@ class FileDetail(models.Model):
     source_file_link = models.URLField(blank=True, null=True, max_length=400)
     file_date = models.DateField(null=True, blank=True)
     is_scanned = models.BooleanField(verbose_name='skannade', default=False)
+    is_active = models.BooleanField(default=False)
 
     inform = models.ForeignKey(Inform, verbose_name='LÄNK ID', on_delete=models.CASCADE, blank=True, null=True)
     zip_file = models.ForeignKey(
@@ -157,8 +159,3 @@ class IgnoreText(models.Model):
     def save(self, *args, **kwargs):
         self.text = ' '.join(self.text.split()).strip().lower()
         super().save(*args, **kwargs)
-
-
-class UnnecessaryFile(models.Model):
-    inform = models.ForeignKey(Inform, on_delete=models.CASCADE)
-    pdf_link = models.CharField(max_length=500)

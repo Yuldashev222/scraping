@@ -1,7 +1,6 @@
-import re
 from rest_framework import serializers
 
-from .enums import s, f, InformRegion, InformCountry
+from .enums import s, f, InformRegion, InformCountry, p
 
 
 class FileDetailDocumentSerializer(serializers.Serializer):
@@ -19,7 +18,10 @@ class FileDetailDocumentSerializer(serializers.Serializer):
     def get_organ(self, obj):
         if obj.organ == 's':
             return s
-        return f
+        elif obj.organ == 'f':
+            return f
+        else:
+            return p
 
     def get_about_text(self, obj):
         if self.context['bol']:

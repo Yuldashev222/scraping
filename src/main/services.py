@@ -6,7 +6,7 @@ import subprocess
 from PyPDF2 import PdfReader
 from datetime import datetime
 
-from .enums import s, f
+from .enums import s, f, exact_words, p
 from .tasks import detect_pdfs
 
 
@@ -43,38 +43,35 @@ def myocr(input_file):
                  skip_text=True)
 
 
-def first_page_ocr(input_file):
-    ocrmypdf.ocr(input_file=input_file,
-                 output_file=input_file + '.first_page.pdf',
-                 deskew=True,
-                 output_type='pdf',
-                 skip_big=50,
-                 language='swe',
-                 skip_text=True,
-                 pages='1')
-
-
 def is_desired_date(date):
     return True if date.year >= 2018 else False
 
 
-def get_first_page_text(pdf_file):
-    first_page_ocr(pdf_file)
-    with open(pdf_file + '.first_page.pdf', 'rb') as file:
-        pdf_reader = PdfReader(file)
-        text = pdf_reader.pages[0].extract_text()
-        text = ' '.join(text.split()).strip().lower()
-    print('COMPLETED=====================')
+def get_pages_text(pdf_file, pages=3):
+    text = ''
+    if pages > 0:
+        temp = '1' if pages == 1 else f'1-{pages}'
+        ocrmypdf.ocr(input_file=pdf_file, output_file=pdf_file + '.first_page.pdf', deskew=True, output_type='pdf',
+                     skip_big=50, language='swe', skip_text=True, pages=temp)
+
+        with open(pdf_file + '.first_page.pdf', 'rb') as file:
+            pdf_reader = PdfReader(file)
+            for page in range(pages):
+                try:
+                    text += pdf_reader.pages[page].extract_text()
+                except IndexError:
+                    break
+            text = ' '.join(text.split()).strip().lower()
     return text
 
 
 def get_text_and_pages(pdf_file):
+    text = ''
     myocr(pdf_file)
     print('GET TEXT ========')
     with open(pdf_file, 'rb') as file:
         pdf_reader = PdfReader(file)
         pages = len(pdf_reader.pages)
-        text = ''
         for page in pdf_reader.pages:
             text += page.extract_text()
     text = ' '.join(text.split()).strip().lower()
@@ -185,11 +182,16 @@ def get_organ_from_text(text):
         return 's'
     elif f in text:
         return 'f'
+    elif p in text:
+        return 'p'
     return False
 
 
 def is_ignore_file(text, ignore_texts):
     for obj in ignore_texts:
         if obj.text in text:
+            return True
+    for word in exact_words:
+        if word not in text:
             return True
     return False

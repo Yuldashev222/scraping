@@ -1,0 +1,12 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    environment:
+      POSTGRES_DB: sc_db
+      POSTGRES_USER: sc_db_user
+      POSTGRES_PASSWORD: jjasdhJADSHFGHFA43564567
+    ports:
+      - "5432:5432"

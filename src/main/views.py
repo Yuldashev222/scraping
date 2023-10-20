@@ -41,9 +41,9 @@ class SearchFilesView(ListAPIView):
     permission_classes = ()
 
     def get_serializer_class(self):
-        if self.request.user.is_authenticated:
-            return FileDetailDocumentSerializer
-        return FileDetailDocumentAuthSerializer
+        # if self.request.user.is_authenticated:
+        return FileDetailDocumentSerializer
+        # return FileDetailDocumentAuthSerializer
 
     @staticmethod
     def all_q_expression(query):
@@ -145,6 +145,7 @@ class SearchFilesView(ListAPIView):
         else:
             search = search.sort('-file_date')
 
+        search = search.query(self.filter_q_expression({'is_active': True}))
         try:
             response = search[(int(page) - 1) * 10:].execute()
         except Exception as e:

@@ -15,7 +15,11 @@ class Scraping(models.Model):
         if (
                 self.pk and self.play and not Scraping.objects.get(pk=self.pk).play
                 and
-                main_models.Inform.objects.filter(is_completed=False).exists()
+                (
+                        main_models.Inform.objects.filter(is_completed=False).exists()
+                        or
+                        main_models.ZipFileUpload.objects.filter(is_completed=False).exists()
+                )
         ):
             raise ValidationError('den sista länken är inte klar än')
 
@@ -23,3 +27,8 @@ class Scraping(models.Model):
         if self.pk and self.play and not Scraping.objects.get(pk=self.pk).play:
             tasks.loop_links.delay(start_inform_id=self.pause_inform_id)
         super().save(*args, **kwargs)
+
+
+class UnnecessaryFile(models.Model):
+    inform = models.ForeignKey(verbose_name='länk', to='main.Inform', on_delete=models.CASCADE)
+    pdf_link = models.CharField(max_length=500)
