@@ -503,6 +503,7 @@ def loop_links(start_inform_id):
         except Exception as e:
             print(str(e))
 
+        Scraping.objects.update(pause_inform_id=inform_id)
     obj = Scraping.objects.first()
     if obj:
         obj.pause_inform_id = 0
