@@ -482,9 +482,10 @@ def loop_links(start_inform_id):
         max_inform_id = models.Inform.objects.aggregate(mx=models.models.Max('id'))['mx']
         if max_inform_id:
             start_inform_id = max_inform_id
-    informs = models.Inform.objects.exclude(id__in=[1058, 856, 855, 854, 853, 852],
-                                            region__in=['sto_nyn', 'vag_fal', 'sto_nac', 'sto_tab']).filter(
-        id__lte=start_inform_id).values_list('link', 'id').order_by('-id')
+    informs = models.Inform.objects.filter(id__lte=start_inform_id
+                                           ).exclude(id__in=[1058, 856, 855, 854, 853, 852],
+                                                     region__in=['sto_nyn', 'vag_fal', 'sto_nac', 'sto_tab']
+                                                     ).values_list('link', 'id').order_by('-id')
     for link, inform_id in informs:
         obj = Scraping.objects.first()
         if obj and not obj.play:
