@@ -499,11 +499,11 @@ def loop_links(start_inform_id):
             return
         print(f'{inform_id}::: {link}')
         try:
+            Scraping.objects.update(pause_inform_id=inform_id)
             extract_url_pdf(link, inform_id)
         except Exception as e:
             print(str(e))
 
-        Scraping.objects.update(pause_inform_id=inform_id)
     obj = Scraping.objects.first()
     if obj:
         obj.pause_inform_id = 0
