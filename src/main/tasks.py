@@ -287,9 +287,9 @@ def extract_url_pdf(webpage_url, inform_id):
                     r_test = requests.head(link)
                     if dict(r_test.headers).get('Content-Type') == 'application/pdf':
                         UnnecessaryFile.objects.get_or_create(inform_id=inform.id, pdf_link=link)
-                        continue
                 except Exception as e:
                     print(e)
+                continue
 
         kwargs = {'url': link, 'filename': filename, 'view_file_name': view_file_name}
         threading.Thread(target=threaded_extract, kwargs=kwargs).start()
@@ -314,9 +314,9 @@ def extract_url_pdf(webpage_url, inform_id):
                 r_test = requests.head(pdf_link)
                 if dict(r_test.headers).get('Content-Type') == 'application/pdf':
                     UnnecessaryFile.objects.get_or_create(inform_id=inform.id, pdf_link=pdf_link)
-                    continue
             except Exception as e:
                 print(e)
+            continue
 
         print(pdf_link)
 
