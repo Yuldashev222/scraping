@@ -283,7 +283,11 @@ def extract_url_pdf(webpage_url, inform_id):
                     ignore_text = True
                     break
             if ignore_text:
-                UnnecessaryFile.objects.get_or_create(inform=inform, pdf_link=link)
+                try:
+                    if dict(requests.head(link).headers).get('Content-Type') == 'application/pdf':
+                        UnnecessaryFile.objects.get_or_create(inform_id=inform.id, pdf_link=link)
+                except Exception as e:
+                    print(e)
                 continue
 
         kwargs = {'url': link, 'filename': filename, 'view_file_name': view_file_name}
@@ -305,7 +309,11 @@ def extract_url_pdf(webpage_url, inform_id):
         date = services.get_date_from_text(view_file_name + str(pdf_name))
         if date and not services.is_desired_date(date):
             print(f'{pdf_link}---------------------------------ignore date')
-            UnnecessaryFile.objects.get_or_create(inform=inform, pdf_link=pdf_link)
+            try:
+                if dict(requests.head(pdf_link).headers).get('Content-Type') == 'application/pdf':
+                    UnnecessaryFile.objects.get_or_create(inform_id=inform.id, pdf_link=pdf_link)
+            except Exception as e:
+                print(e)
             continue
         print(pdf_link)
 
@@ -333,7 +341,11 @@ def extract_url_pdf(webpage_url, inform_id):
                 first_page_text = services.get_pages_text(save_path)
                 if services.is_ignore_file(first_page_text, ignore_texts_from_first_page):
                     print(f'{pdf_link}---------------------------------ignore first page')
-                    UnnecessaryFile.objects.get_or_create(inform=inform, pdf_link=pdf_link)
+                    try:
+                        if dict(requests.head(pdf_link).headers).get('Content-Type') == 'application/pdf':
+                            UnnecessaryFile.objects.get_or_create(inform_id=inform.id, pdf_link=pdf_link)
+                    except Exception as e:
+                        print(e)
                     os.remove(save_path)
                     os.remove(save_path + '.first_page.pdf')
                     continue
@@ -353,7 +365,12 @@ def extract_url_pdf(webpage_url, inform_id):
                                                  inform_id=inform_id,
                                                  logo_id=logo_id)
             except Exception as e:
-                UnnecessaryFile.objects.get_or_create(inform=inform, pdf_link=pdf_link)
+                try:
+                    if dict(requests.head(pdf_link).headers).get('Content-Type') == 'application/pdf':
+                        UnnecessaryFile.objects.get_or_create(inform_id=inform.id, pdf_link=pdf_link)
+                except Exception as e:
+                    print(e)
+
                 if os.path.isfile(save_path):
                     os.remove(save_path)
                 if os.path.isfile(save_path + '.first_page.pdf'):
@@ -376,7 +393,12 @@ def extract_url_pdf(webpage_url, inform_id):
                 first_page_text = services.get_pages_text(save_path)
                 if services.is_ignore_file(first_page_text, ignore_texts_from_first_page):
                     print(f'{pdf_link}---------------------------------ignore first page')
-                    UnnecessaryFile.objects.get_or_create(inform=inform, pdf_link=pdf_link)
+                    try:
+                        if dict(requests.head(pdf_link).headers).get('Content-Type') == 'application/pdf':
+                            UnnecessaryFile.objects.get_or_create(inform_id=inform.id, pdf_link=pdf_link)
+                    except Exception as e:
+                        print(e)
+
                     os.remove(save_path)
                     os.remove(save_path + '.first_page.pdf')
                     continue
@@ -414,7 +436,12 @@ def extract_url_pdf(webpage_url, inform_id):
                                                  logo_id=logo_id)
 
             except Exception as e:
-                UnnecessaryFile.objects.get_or_create(inform=inform, pdf_link=pdf_link)
+                try:
+                    if dict(requests.head(pdf_link).headers).get('Content-Type') == 'application/pdf':
+                        UnnecessaryFile.objects.get_or_create(inform_id=inform.id, pdf_link=pdf_link)
+                except Exception as e:
+                    print(e)
+
                 if os.path.isfile(new_save_path):
                     os.remove(new_save_path)
                 if os.path.isfile(save_path):
