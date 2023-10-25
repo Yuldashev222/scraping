@@ -61,6 +61,7 @@ class Inform(models.Model):
     date_created = models.DateTimeField('date added', auto_now_add=True)
     is_completed = models.BooleanField(verbose_name='är klart', default=False)
     new_pdfs = models.BooleanField(default=True)
+    last_pdf = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
         return f'{self.pk}: {self.link}'

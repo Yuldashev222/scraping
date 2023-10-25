@@ -12,6 +12,7 @@ from bs4 import BeautifulSoup
 from celery import shared_task
 from django.conf import settings
 from django.db.utils import DataError
+from django.utils.timezone import now
 from urllib3.exceptions import InsecureRequestWarning
 from urllib.parse import urljoin, urlparse, urlunparse, unquote
 
@@ -90,6 +91,7 @@ def detect_pdfs(directory_path, zip_file_model_id):
 
                         obj = models.FileDetail.objects.create(country=model_region[:3],
                                                                region=model_region,
+                                                               is_active=True,
                                                                organ=model_organ,
                                                                zip_file_id=zip_file_model_id,
                                                                logo_id=models.Logo.objects.get(region=model_region).id,
@@ -304,6 +306,8 @@ def extract_url_pdf(webpage_url, inform_id):
     ignore_texts_from_first_page = models.IgnoreText.objects.filter(from_filename=False)
     print('\nDownloading pdfs...\n')
     pdf_links_copy = pdf_links.copy()
+    last_pdf = None
+    new_pdfs = False
     for index, (pdf_link, pdf_name) in enumerate(pdf_links_copy.items(), 0):
         view_file_name = pdf_view_file_names[index]
 
@@ -368,6 +372,8 @@ def extract_url_pdf(webpage_url, inform_id):
                                                  source_file_link=pdf_link,
                                                  inform_id=inform_id,
                                                  logo_id=logo_id)
+                last_pdf = now()
+                new_pdfs = True
             except Exception as e:
                 try:
                     r_test = requests.head(pdf_link)
@@ -440,7 +446,8 @@ def extract_url_pdf(webpage_url, inform_id):
                                                  source_file_link=pdf_link,
                                                  inform_id=inform_id,
                                                  logo_id=logo_id)
-
+                last_pdf = now()
+                new_pdfs = True
             except Exception as e:
                 try:
                     if dict(requests.head(pdf_link).headers).get('Content-Type') == 'application/pdf':
@@ -457,7 +464,9 @@ def extract_url_pdf(webpage_url, inform_id):
                 print(e)
 
     inform.is_completed = True
-    inform.new_pdfs = True if len_pdfs > 0 else False
+    inform.new_pdfs = new_pdfs
+    if last_pdf is not None:
+        inform.last_pdf = last_pdf
     inform.save()
     try:
         shutil.rmtree(f'{settings.MEDIA_ROOT}{inform.country}/{inform.region}/test/')
