@@ -265,7 +265,7 @@ def extract_url_pdf(webpage_url, inform_id):
         if checked_links.get(link):
             continue
 
-        if UnnecessaryFile.objects.filter(inform=inform, pdf_link=link).exists():
+        if UnnecessaryFile.objects.filter(inform_id=inform.id, pdf_link=link).exists():
             print(f'{link}      ---------------------------unnecessary file')
             continue
         elif models.IgnoreFile.objects.filter(link=webpage_url, source_file_link=link).exists():
@@ -284,11 +284,12 @@ def extract_url_pdf(webpage_url, inform_id):
                     break
             if ignore_text:
                 try:
-                    if dict(requests.head(link).headers).get('Content-Type') == 'application/pdf':
+                    r_test = requests.head(link)
+                    if dict(r_test.headers).get('Content-Type') == 'application/pdf':
                         UnnecessaryFile.objects.get_or_create(inform_id=inform.id, pdf_link=link)
+                        continue
                 except Exception as e:
                     print(e)
-                continue
 
         kwargs = {'url': link, 'filename': filename, 'view_file_name': view_file_name}
         threading.Thread(target=threaded_extract, kwargs=kwargs).start()
@@ -310,11 +311,13 @@ def extract_url_pdf(webpage_url, inform_id):
         if date and not services.is_desired_date(date):
             print(f'{pdf_link}---------------------------------ignore date')
             try:
-                if dict(requests.head(pdf_link).headers).get('Content-Type') == 'application/pdf':
+                r_test = requests.head(pdf_link)
+                if dict(r_test.headers).get('Content-Type') == 'application/pdf':
                     UnnecessaryFile.objects.get_or_create(inform_id=inform.id, pdf_link=pdf_link)
+                    continue
             except Exception as e:
                 print(e)
-            continue
+
         print(pdf_link)
 
         pdf_name = f'{uuid4()}.pdf'
@@ -342,7 +345,8 @@ def extract_url_pdf(webpage_url, inform_id):
                 if services.is_ignore_file(first_page_text, ignore_texts_from_first_page):
                     print(f'{pdf_link}---------------------------------ignore first page')
                     try:
-                        if dict(requests.head(pdf_link).headers).get('Content-Type') == 'application/pdf':
+                        r_test = requests.head(pdf_link)
+                        if dict(r_test.headers).get('Content-Type') == 'application/pdf':
                             UnnecessaryFile.objects.get_or_create(inform_id=inform.id, pdf_link=pdf_link)
                     except Exception as e:
                         print(e)
@@ -366,7 +370,8 @@ def extract_url_pdf(webpage_url, inform_id):
                                                  logo_id=logo_id)
             except Exception as e:
                 try:
-                    if dict(requests.head(pdf_link).headers).get('Content-Type') == 'application/pdf':
+                    r_test = requests.head(pdf_link)
+                    if dict(r_test.headers).get('Content-Type') == 'application/pdf':
                         UnnecessaryFile.objects.get_or_create(inform_id=inform.id, pdf_link=pdf_link)
                 except Exception as e:
                     print(e)
@@ -394,7 +399,8 @@ def extract_url_pdf(webpage_url, inform_id):
                 if services.is_ignore_file(first_page_text, ignore_texts_from_first_page):
                     print(f'{pdf_link}---------------------------------ignore first page')
                     try:
-                        if dict(requests.head(pdf_link).headers).get('Content-Type') == 'application/pdf':
+                        r_test = requests.head(pdf_link)
+                        if dict(r_test.headers).get('Content-Type') == 'application/pdf':
                             UnnecessaryFile.objects.get_or_create(inform_id=inform.id, pdf_link=pdf_link)
                     except Exception as e:
                         print(e)
