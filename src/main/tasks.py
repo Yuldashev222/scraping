@@ -417,7 +417,8 @@ def extract_url_pdf(webpage_url, inform_id):
                 os.remove(save_path + '.first_page.pdf')
                 text_in_file, pages = services.get_text_and_pages(save_path)
                 organ, gr_date = (
-                    services.get_organ_from_text(first_page_text) if not bool(get_organ) else get_organ,
+                    services.get_organ_from_text(services.get_pages_text(save_path, 2)) if not bool(
+                        get_organ) else get_organ,
                     services.get_date_from_text(first_page_text) if not bool(date) else date
                 )
                 if gr_date and not services.is_desired_date(gr_date):
