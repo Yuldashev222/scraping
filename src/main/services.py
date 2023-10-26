@@ -6,7 +6,7 @@ import subprocess
 from PyPDF2 import PdfReader
 from datetime import datetime
 
-from .enums import s, f, exact_words
+from .enums import s, f, exact_words, p
 from .tasks import detect_pdfs
 
 
@@ -176,6 +176,8 @@ def get_date_from_text(text, ignore_file=False, first_date=False):
 
 
 def get_organ_from_text(text):
+    if p not in text:
+        return False
     if s in text and f in text:
         return 's' if text.index(s) < text.index(f) else 'f'
     elif s in text:
