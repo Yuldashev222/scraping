@@ -69,6 +69,8 @@ class SearchFilesView(ListAPIView):
         return Q('range', file_date={'gte': start_date, 'lte': end_date})
 
     def get(self, request, *args, **kwargs):
+        if request.META.get('HTTP_ORIGIN') != 'https://offentligabeslut.se':
+            return Response({})
         page = str(request.query_params.get('page', 1)).strip()
         search_query = str(request.query_params.get('search', '')).strip()
         ordering_query = str(request.query_params.get('ordering', '')).strip()

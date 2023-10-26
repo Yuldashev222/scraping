@@ -69,12 +69,14 @@ class FileDetailAdmin(admin.ModelAdmin):
     list_display = (
        'id', 'link_id', 'country', 'region', 'organ', 'file_date', 'pages', 'size', 'is_active', 'file'
     )
+    list_editable = ['is_active']
     list_display_links = ('country', 'region', 'organ', 'file_date')
     search_fields = ('inform__id',)
     list_per_page = 50
     list_filter = (
         ('file_date', DateRangeFilter),
         ('inform_id', NumericRangeFilter),
+        'is_active',
         'file_date',
         'organ',
         'country',
@@ -140,13 +142,16 @@ class FileDetailAdmin(admin.ModelAdmin):
 
 @admin.register(models.Inform)
 class InformAdmin(admin.ModelAdmin):
-    list_display = ('id', 'country', 'region', 'organ', 'is_completed', 'new_pdfs', 'date_created', 'source_link')
-    list_display_links = ('id', 'date_created')
+    list_display = ('id', 'country', 'region', 'organ', 'is_completed', 'new_pdfs', 'last_pdf', 'source_link')
+    list_display_links = ('id', 'country', 'region')
     search_fields = ('link', 'desc')
     list_per_page = 20
     readonly_fields = ('is_completed', 'pdfs_count', 'new_pdfs')
     search_help_text = 'sök med länk och beskrivning'
-    list_filter = (('id', NumericRangeFilter), 'new_pdfs', 'is_completed', 'organ', 'country', 'region')
+    list_filter = (
+        ('last_pdf', DateRangeFilter),
+        ('id', NumericRangeFilter),
+        'new_pdfs', 'is_completed', 'organ', 'country', 'region')
 
     def has_change_permission(self, request, obj=None):
         return False

@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
+from rangefilter.filters import NumericRangeFilter
 
 from scraping.models import Scraping, UnnecessaryFile
 
@@ -20,9 +21,10 @@ class ScrapingAdmin(admin.ModelAdmin):
 
 @admin.register(UnnecessaryFile)
 class UnnecessaryFileAdmin(admin.ModelAdmin):
-    list_display = ['website_link', 'pdf_source_link']
-    list_filter = ['inform']
+    list_display = ['inform_id', 'website_link', 'pdf_source_link']
     list_display_links = None
+    list_filter = (('id', NumericRangeFilter),)
+    search_fields = ['inform__link', 'pdf_source_link']
 
     def website_link(self, obj):
         if obj.inform:

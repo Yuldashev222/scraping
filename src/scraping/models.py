@@ -32,3 +32,6 @@ class Scraping(models.Model):
 class UnnecessaryFile(models.Model):
     inform = models.ForeignKey(verbose_name='länk', to='main.Inform', on_delete=models.CASCADE)
     pdf_link = models.CharField(max_length=500)
+
+    class Meta:
+        ordering = ['-id']
