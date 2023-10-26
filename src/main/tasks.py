@@ -7,8 +7,8 @@ import urllib3
 import requests
 import openpyxl
 import threading
-from uuid import uuid4
 from bs4 import BeautifulSoup
+from uuid import uuid4
 from celery import shared_task
 from django.conf import settings
 from django.db.utils import DataError

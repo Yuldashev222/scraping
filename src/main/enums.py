@@ -1,6 +1,6 @@
 from enum import Enum
 
-exact_words = ['juster']
+exact_words = ['juster', 'protokoll']
 
 s = 'kommunstyrelsen'
 f = 'kommunfullmäktige'
