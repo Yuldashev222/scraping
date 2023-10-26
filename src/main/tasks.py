@@ -372,7 +372,7 @@ def extract_url_pdf(webpage_url, inform_id):
                                                  source_file_link=pdf_link,
                                                  inform_id=inform_id,
                                                  logo_id=logo_id)
-                last_pdf = now()
+                last_pdf = True
                 new_pdfs = True
             except Exception as e:
                 try:
@@ -446,7 +446,7 @@ def extract_url_pdf(webpage_url, inform_id):
                                                  source_file_link=pdf_link,
                                                  inform_id=inform_id,
                                                  logo_id=logo_id)
-                last_pdf = now()
+                last_pdf = True
                 new_pdfs = True
             except Exception as e:
                 try:
@@ -466,7 +466,7 @@ def extract_url_pdf(webpage_url, inform_id):
     inform.is_completed = True
     inform.new_pdfs = new_pdfs
     if last_pdf is not None:
-        inform.last_pdf = last_pdf
+        inform.last_pdf = now()
     inform.save()
     try:
         shutil.rmtree(f'{settings.MEDIA_ROOT}{inform.country}/{inform.region}/test/')
