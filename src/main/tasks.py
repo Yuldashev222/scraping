@@ -387,8 +387,6 @@ def extract_url_pdf(webpage_url, inform_id):
                 if os.path.isfile(save_path + '.first_page.pdf'):
                     os.remove(save_path + '.first_page.pdf')
                 print(e)
-                last_pdf = None
-                new_pdfs = False
 
         else:
             location = f'{settings.MEDIA_ROOT}/{inform.country}/{inform.region}/test/'
@@ -464,8 +462,6 @@ def extract_url_pdf(webpage_url, inform_id):
                 if os.path.isfile(save_path + '.first_page.pdf'):
                     os.remove(save_path + '.first_page.pdf')
                 print(e)
-                last_pdf = None
-                new_pdfs = False
 
     inform.is_completed = True
     inform.new_pdfs = new_pdfs
