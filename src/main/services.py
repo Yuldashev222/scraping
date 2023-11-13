@@ -5,6 +5,7 @@ import ocrmypdf
 import subprocess
 from PyPDF2 import PdfReader
 from datetime import datetime
+from django.utils.timezone import now
 
 from .enums import s, f, exact_words, p
 from .tasks import detect_pdfs
@@ -44,7 +45,9 @@ def myocr(input_file):
 
 
 def is_desired_date(date):
-    return True if date.year >= 2018 else False
+    today = now().date()
+    now_month = today.month
+    return True if date >= now().date().replace(month=now_month - 2, day=1) else False
 
 
 def get_pages_text(pdf_file, pages=3):

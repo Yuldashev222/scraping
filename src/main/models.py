@@ -109,7 +109,7 @@ class FileDetail(models.Model):
     file_date = models.DateField(null=True, blank=True)
     is_scanned = models.BooleanField(verbose_name='skannade', default=False)
     is_active = models.BooleanField(default=False)
-
+    is_verified = models.BooleanField(default=True)
     inform = models.ForeignKey(Inform, verbose_name='LÄNK ID', on_delete=models.CASCADE, blank=True, null=True)
     zip_file = models.ForeignKey(
         ZipFileUpload, verbose_name='Zip File', on_delete=models.CASCADE, blank=True, null=True

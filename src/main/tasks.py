@@ -309,72 +309,25 @@ def extract_url_pdf(webpage_url, inform_id):
     last_pdf = None
     new_pdfs = False
     for index, (pdf_link, pdf_name) in enumerate(pdf_links_copy.items(), 0):
-        view_file_name = pdf_view_file_names[index]
-
-        date = services.get_date_from_text(view_file_name + str(pdf_name))
-        if date and not services.is_desired_date(date):
-            print(f'{pdf_link}---------------------------------ignore date')
-            try:
-                r_test = requests.head(pdf_link)
-                if dict(r_test.headers).get('Content-Type') == 'application/pdf':
-                    UnnecessaryFile.objects.get_or_create(inform_id=inform.id, pdf_link=pdf_link)
-            except Exception as e:
-                print(e)
-            continue
-
         print(pdf_link)
 
         pdf_name = f'{uuid4()}.pdf'
-        get_organ = inform.organ if str(inform.organ) in 'sf' else False
-        if not get_organ:
-            source = view_file_name + str(pdf_link)
-            if s in source:
-                get_organ = 's'
-            elif f in source:
-                get_organ = 'f'
 
-        if get_organ and bool(date):
-            location = f'{inform.country}/{inform.region}/{get_organ}/{date}/'
-            save_path = os.path.join(f'{settings.MEDIA_ROOT}/{location}', pdf_name)  # last
-            save_dir = os.path.dirname(save_path)
-            if not os.path.exists(save_dir):
-                os.makedirs(save_dir)
+        location = f'{settings.MEDIA_ROOT}/{inform.country}/{inform.region}/test/'
+        save_path = os.path.join(location, pdf_name)
+        save_dir = os.path.dirname(save_path)
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
 
-            with open(save_path, 'wb') as file:
-                file.write(requests.get(
-                    pdf_link, headers=headers_html, allow_redirects=True, verify=False, stream=True).content)
+        with open(save_path, 'wb') as file:
+            file.write(requests.get(
+                pdf_link, headers=headers_html, allow_redirects=True, verify=False, stream=True).content)
 
-            try:
-                first_page_text = services.get_pages_text(save_path)
-                if services.is_ignore_file(first_page_text, ignore_texts_from_first_page):
-                    print(f'{pdf_link}---------------------------------ignore first page')
-                    try:
-                        r_test = requests.head(pdf_link)
-                        if dict(r_test.headers).get('Content-Type') == 'application/pdf':
-                            UnnecessaryFile.objects.get_or_create(inform_id=inform.id, pdf_link=pdf_link)
-                    except Exception as e:
-                        print(e)
-                    os.remove(save_path)
-                    os.remove(save_path + '.first_page.pdf')
-                    continue
-                os.remove(save_path + '.first_page.pdf')
-                text_in_file, pages = services.get_text_and_pages(save_path)
-
-                models.FileDetail.objects.create(text=text_in_file,
-                                                 first_page_text=first_page_text,
-                                                 pages=pages,
-                                                 size=round(os.path.getsize(save_path) / 1_000_000, 2),
-                                                 country=inform.country,
-                                                 region=inform.region,
-                                                 organ=get_organ,
-                                                 file_date=date,
-                                                 file=location + pdf_name,
-                                                 source_file_link=pdf_link,
-                                                 inform_id=inform_id,
-                                                 logo_id=logo_id)
-                last_pdf = True
-                new_pdfs = True
-            except Exception as e:
+        try:
+            new_save_path = ''
+            first_page_text = services.get_pages_text(save_path)
+            if services.is_ignore_file(first_page_text, ignore_texts_from_first_page):
+                print(f'{pdf_link}---------------------------------ignore first page')
                 try:
                     r_test = requests.head(pdf_link)
                     if dict(r_test.headers).get('Content-Type') == 'application/pdf':
@@ -382,87 +335,57 @@ def extract_url_pdf(webpage_url, inform_id):
                 except Exception as e:
                     print(e)
 
+                os.remove(save_path)
+                os.remove(save_path + '.first_page.pdf')
+                continue
+            os.remove(save_path + '.first_page.pdf')
+            text_in_file, pages = services.get_text_and_pages(save_path)
+            organ, gr_date = (
+                services.get_organ_from_text(services.get_pages_text(save_path, 2)),
+                services.get_date_from_text(first_page_text)
+            )
+            if gr_date and not services.is_desired_date(gr_date):
                 if os.path.isfile(save_path):
                     os.remove(save_path)
-                if os.path.isfile(save_path + '.first_page.pdf'):
-                    os.remove(save_path + '.first_page.pdf')
-                print(e)
+                print(f'{pdf_link}                 -------------------------ignore by date')
+                continue
 
-        else:
-            location = f'{settings.MEDIA_ROOT}/{inform.country}/{inform.region}/test/'
-            save_path = os.path.join(location, pdf_name)
-            save_dir = os.path.dirname(save_path)
+            file_date = gr_date if gr_date else None
+            location = f'{inform.country}/{inform.region}/{organ}/{file_date}/'
+            new_save_path = os.path.join(f'{settings.MEDIA_ROOT}/{location}', pdf_name)
+            save_dir = os.path.dirname(new_save_path)
+
             if not os.path.exists(save_dir):
                 os.makedirs(save_dir)
-
-            with open(save_path, 'wb') as file:
-                file.write(requests.get(
-                    pdf_link, headers=headers_html, allow_redirects=True, verify=False, stream=True).content)
-
+            os.rename(save_path, new_save_path)
+            models.FileDetail.objects.create(text=text_in_file,
+                                             first_page_text=first_page_text,
+                                             pages=pages,
+                                             size=round(os.path.getsize(new_save_path) / 1_000_000, 2),
+                                             country=inform.country,
+                                             region=inform.region,
+                                             organ=organ,
+                                             file_date=file_date,
+                                             file=location + pdf_name,
+                                             source_file_link=pdf_link,
+                                             inform_id=inform_id,
+                                             logo_id=logo_id)
+            last_pdf = True
+            new_pdfs = True
+        except Exception as e:
             try:
-                new_save_path = ''
-                first_page_text = services.get_pages_text(save_path)
-                if services.is_ignore_file(first_page_text, ignore_texts_from_first_page):
-                    print(f'{pdf_link}---------------------------------ignore first page')
-                    try:
-                        r_test = requests.head(pdf_link)
-                        if dict(r_test.headers).get('Content-Type') == 'application/pdf':
-                            UnnecessaryFile.objects.get_or_create(inform_id=inform.id, pdf_link=pdf_link)
-                    except Exception as e:
-                        print(e)
-
-                    os.remove(save_path)
-                    os.remove(save_path + '.first_page.pdf')
-                    continue
-                os.remove(save_path + '.first_page.pdf')
-                text_in_file, pages = services.get_text_and_pages(save_path)
-                organ, gr_date = (
-                    services.get_organ_from_text(services.get_pages_text(save_path, 2)) if not bool(
-                        get_organ) else get_organ,
-                    services.get_date_from_text(first_page_text) if not bool(date) else date
-                )
-                if gr_date and not services.is_desired_date(gr_date):
-                    if os.path.isfile(save_path):
-                        os.remove(save_path)
-                    print(f'{pdf_link}                 -------------------------ignore by date')
-                    continue
-
-                file_date = date or gr_date if bool(date or gr_date) else None
-                location = f'{inform.country}/{inform.region}/{organ}/{file_date}/'
-                new_save_path = os.path.join(f'{settings.MEDIA_ROOT}/{location}', pdf_name)
-                save_dir = os.path.dirname(new_save_path)
-
-                if not os.path.exists(save_dir):
-                    os.makedirs(save_dir)
-                os.rename(save_path, new_save_path)
-                models.FileDetail.objects.create(text=text_in_file,
-                                                 first_page_text=first_page_text,
-                                                 pages=pages,
-                                                 size=round(os.path.getsize(new_save_path) / 1_000_000, 2),
-                                                 country=inform.country,
-                                                 region=inform.region,
-                                                 organ=organ,
-                                                 file_date=file_date,
-                                                 file=location + pdf_name,
-                                                 source_file_link=pdf_link,
-                                                 inform_id=inform_id,
-                                                 logo_id=logo_id)
-                last_pdf = True
-                new_pdfs = True
+                if dict(requests.head(pdf_link).headers).get('Content-Type') == 'application/pdf':
+                    UnnecessaryFile.objects.get_or_create(inform_id=inform.id, pdf_link=pdf_link)
             except Exception as e:
-                try:
-                    if dict(requests.head(pdf_link).headers).get('Content-Type') == 'application/pdf':
-                        UnnecessaryFile.objects.get_or_create(inform_id=inform.id, pdf_link=pdf_link)
-                except Exception as e:
-                    print(e)
-
-                if os.path.isfile(new_save_path):
-                    os.remove(new_save_path)
-                if os.path.isfile(save_path):
-                    os.remove(save_path)
-                if os.path.isfile(save_path + '.first_page.pdf'):
-                    os.remove(save_path + '.first_page.pdf')
                 print(e)
+
+            if os.path.isfile(new_save_path):
+                os.remove(new_save_path)
+            if os.path.isfile(save_path):
+                os.remove(save_path)
+            if os.path.isfile(save_path + '.first_page.pdf'):
+                os.remove(save_path + '.first_page.pdf')
+            print(e)
 
     inform.is_completed = True
     inform.new_pdfs = new_pdfs
@@ -484,7 +407,7 @@ def loop_links(start_inform_id):
         if max_inform_id:
             start_inform_id = max_inform_id
     informs = models.Inform.objects.filter(
-        id__lte=start_inform_id).exclude(models.models.Q(id__in=[1058, 856, 855, 854, 853, 852]) |
+        id__lte=start_inform_id).exclude(models.models.Q(id__in=[1058, 1057, 856, 855, 854, 853, 852]) |
                                          models.models.Q(region__in=['sto_nyn', 'vag_fal', 'sto_nac', 'sto_tab'])
                                          ).values_list('link', 'id').order_by('-id')
     for link, inform_id in informs:
@@ -503,6 +426,7 @@ def loop_links(start_inform_id):
 
     obj = Scraping.objects.first()
     if obj:
+        obj.play = False
         obj.pause_inform_id = 0
         obj.save()
     print('loop link ------------------------------------------- end')

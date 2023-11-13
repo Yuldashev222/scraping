@@ -6,6 +6,7 @@ from django.utils.translation import gettext_lazy as _
 from django.contrib.admin.filters import ChoicesFieldListFilter
 from rangefilter.filters import DateRangeFilter, NumericRangeFilter
 
+from .enums import InformRegion
 from .tasks import extract_url_pdf, extract_local_pdf
 from . import models
 
@@ -64,10 +65,27 @@ class IgnoreTextAdmin(admin.ModelAdmin):
     search_fields = ['text']
 
 
+class RegionListFilter(admin.SimpleListFilter):
+    title = 'Regions'
+    parameter_name = 'region'
+
+    def lookups(self, request, model_admin):
+        country__exact = request.GET.get('country__exact')
+        if country__exact:
+            return (obj for obj in InformRegion.choices() if obj[0].startswith(country__exact))
+        return ((None, None),)
+
+    def queryset(self, request, queryset):
+        region = self.value()
+        if region:
+            return queryset.filter(region=region)
+        return queryset
+
+
 @admin.register(models.FileDetail)
 class FileDetailAdmin(admin.ModelAdmin):
     list_display = (
-       'id', 'link_id', 'country', 'region', 'organ', 'file_date', 'pages', 'size', 'is_active', 'file'
+       'id', 'link_id', 'country', 'region', 'organ', 'file_date', 'pages', 'size', 'is_active', 'is_verified', 'file'
     )
     list_editable = ['is_active']
     list_display_links = ('country', 'region', 'organ', 'file_date')
@@ -77,10 +95,11 @@ class FileDetailAdmin(admin.ModelAdmin):
         ('file_date', DateRangeFilter),
         ('inform_id', NumericRangeFilter),
         'is_active',
+        'is_verified',
         'file_date',
         'organ',
         'country',
-        ('region', ChoicesFieldListFilter)
+        RegionListFilter
     )
     ordering = ('-id',)
 
@@ -151,7 +170,7 @@ class InformAdmin(admin.ModelAdmin):
     list_filter = (
         ('last_pdf', DateRangeFilter),
         ('id', NumericRangeFilter),
-        'new_pdfs', 'is_completed', 'organ', 'country', 'region')
+        'new_pdfs', 'is_completed', 'organ', 'country', RegionListFilter)
 
     def has_change_permission(self, request, obj=None):
         return False
