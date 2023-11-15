@@ -9,7 +9,7 @@ env = environ.Env()
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 SECRET_KEY = env("SECRET_KEY")
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ["filer.offentligabeslut.se", "127.0.0.1", "localhost"]
 
@@ -34,7 +34,8 @@ SECOND_INSTALLED_APPS = [
 PROJECT_APPS = [
     'accounts',
     'main',
-    'scraping'
+    'scraping',
+    'analytics'
 ]
 
 INSTALLED_APPS = DEFAULT_INSTALLED_APPS + SECOND_INSTALLED_APPS + PROJECT_APPS
@@ -72,7 +73,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'ENGINE': 'django.db.backends.sqlite3',
         'NAME': env('DB_NAME'),
         'USER': env('DB_USER'),
         'PASSWORD': env('DB_PASSWORD'),
@@ -128,13 +129,13 @@ REST_FRAMEWORK = {
     'ORDERING_PARAM': 'ordering',
 
     'DEFAULT_PERMISSION_CLASSES': (
-#        'rest_framework.permissions.IsAuthenticated',
+        #        'rest_framework.permissions.IsAuthenticated',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        #'rest_framework.authentication.BasicAuthentication',
-        #'rest_framework.authentication.SessionAuthentication',
+        # 'rest_framework.authentication.BasicAuthentication',
+        # 'rest_framework.authentication.SessionAuthentication',
         'accounts.authentication.IPAddressAuthentication',
-#        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        #        'rest_framework_simplejwt.authentication.JWTAuthentication',
     )
 }
 SIMPLE_JWT = {
@@ -166,7 +167,7 @@ ELASTICSEARCH_DSL = {
     },
 }
 
-#LOGGING = {
+# LOGGING = {
 #    'version': 1,
 #    'handlers': {
 #        'console': {'class': 'logging.StreamHandler'}
@@ -177,4 +178,7 @@ ELASTICSEARCH_DSL = {
 #            'level': 'DEBUG'
 #        }
 #    }
-#}
+# }
+
+PROPERTY_ID = env('PROPERTY_ID')
+GOOGLE_APPLICATION_CREDENTIALS = os.path.join(BASE_DIR, 'offentligabeslut.se.json')
