@@ -1,6 +1,5 @@
 # my ignore files
 src/sc_db
-src/config/settings.py
 sc_db
 dump.rdb
 #settings.py
