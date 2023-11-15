@@ -68,6 +68,15 @@ class ModelNameAdmin(admin.ModelAdmin):
     def average_time_visitor(self, obj):
         return f'{self._average_time_visitor} sec'
 
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
 
 @admin.register(CitiesAnalytics)
 class ModelNameAdmin(admin.ModelAdmin):
@@ -87,3 +96,12 @@ class ModelNameAdmin(admin.ModelAdmin):
         CitiesAnalytics.objects.all().delete()
         CitiesAnalytics.objects.bulk_create([CitiesAnalytics(**obj) for obj in self._city_report])
         return self.list_display
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
