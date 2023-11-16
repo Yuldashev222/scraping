@@ -115,9 +115,12 @@ class ModelNameAdmin(admin.ModelAdmin):
 @admin.register(PagesAnalytics)
 class ModelNameAdmin(admin.ModelAdmin):
     _page_report = []
-    list_display = ['page_path', 'visitors', 'avg_engagement_time']
+    list_display = ['page_path', 'visitors', 'get_avg_engagement_time']
     list_filter = [('range_date', CustomDateRangeFilter)]
     ordering = ['-visitors']
+
+    def get_avg_engagement_time(self, obj):
+        return f'{obj.avg_engagement_time} sec'
 
     def get_list_display(self, request):
         start_date = request.GET.get('range_date__range__gte')
