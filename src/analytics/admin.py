@@ -115,7 +115,7 @@ class ModelNameAdmin(admin.ModelAdmin):
 @admin.register(PagesAnalytics)
 class ModelNameAdmin(admin.ModelAdmin):
     _page_report = []
-    list_display = ['page_path', 'visitors']
+    list_display = ['page_path', 'visitors', 'avg_engagement_time']
     list_filter = [('range_date', CustomDateRangeFilter)]
     ordering = ['-visitors']
 

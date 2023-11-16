@@ -91,12 +91,13 @@ class GoogleAnalytics:
         request = RunReportRequest(property=cls.get_property(),
                                    date_ranges=[cls.get_date_obj(start_date, end_date)],
                                    dimensions=[Dimension(name="pagePath")],
-                                   metrics=[Metric(name="screenPageViews")])
+                                   metrics=[Metric(name="screenPageViews"), Metric(name="averageSessionDuration")])
         response = client.run_report(request=request)
         for row in response.rows:
             obj = {
                 'page_path': row.dimension_values[0].value,
                 'visitors': row.metric_values[0].value,
+                'avg_engagement_time': int(float(row.metric_values[1].value))
             }
             page_report.append(obj)
 
