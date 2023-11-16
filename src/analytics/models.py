@@ -24,6 +24,7 @@ class CitiesAnalytics(models.Model):
 class PagesAnalytics(models.Model):
     page_path = models.CharField(max_length=500)
     visitors = models.IntegerField()
+    avg_engagement_time = models.IntegerField(default=0)
     range_date = models.DateField(null=True)
 
     class Meta:
