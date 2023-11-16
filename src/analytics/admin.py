@@ -1,13 +1,12 @@
-from django.contrib import admin
-from django.core.exceptions import ValidationError
-from django.db.models import Count
-
-from analytics.filters import CityFilter, CustomDateRangeFilter
-from analytics.models import VisitorAnalytics, CitiesAnalytics
-from analytics.services import GoogleAnalytics
-from main.models import SearchDetail
-
 import datetime
+from django.contrib import admin
+from django.db.models import Count
+from analytics.models import VisitorAnalytics, CitiesAnalytics, PagesAnalytics, DeviceAnalytics, ChannelAnalytics
+from analytics.filters import CityFilter, CustomDateRangeFilter, ModelDeviceFilter
+from analytics.services import GoogleAnalytics
+from django.core.exceptions import ValidationError
+
+from main.models import SearchDetail
 
 
 def validate_date(date_text):
@@ -24,7 +23,6 @@ class ModelNameAdmin(admin.ModelAdmin):
     _average_time_visitor = 0
     _database_searches = 0
     _database_unique_users_search_count = 1
-    _city_report = []
 
     list_display = [
         'website_visits', 'unique_visitors', 'average_time_visitor', 'database_searches',
@@ -43,9 +41,16 @@ class ModelNameAdmin(admin.ModelAdmin):
         self._unique_visitors, self._website_visits, self._average_time_visitor = GoogleAnalytics.visitors_report(
             start_date=start_date,
             end_date=end_date)
-        self._database_searches = SearchDetail.objects.count()
-        self._database_unique_users_search_count = SearchDetail.objects.values('ipaddress').annotate(Count('pk')
-                                                                                                     ).count()
+
+        search_database_query = {}
+        if start_date:
+            search_database_query['date_created__gte'] = start_date
+        if end_date:
+            search_database_query['date_created__lte'] = end_date
+        self._database_searches = SearchDetail.objects.filter(**search_database_query).count()
+        self._database_unique_users_search_count = SearchDetail.objects.filter(**search_database_query
+                                                                               ).values('ipaddress'
+                                                                                        ).annotate(Count('pk')).count()
         return self.list_display
 
     def website_visits(self, obj):
@@ -95,6 +100,93 @@ class ModelNameAdmin(admin.ModelAdmin):
         self._city_report = GoogleAnalytics.cities_report(start_date, end_date)
         CitiesAnalytics.objects.all().delete()
         CitiesAnalytics.objects.bulk_create([CitiesAnalytics(**obj) for obj in self._city_report])
+        return self.list_display
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(PagesAnalytics)
+class ModelNameAdmin(admin.ModelAdmin):
+    _page_report = []
+    list_display = ['page_path', 'visitors']
+    list_filter = [('range_date', CustomDateRangeFilter)]
+    ordering = ['-visitors']
+
+    def get_list_display(self, request):
+        start_date = request.GET.get('range_date__range__gte')
+        end_date = request.GET.get('range_date__range__lte')
+        if start_date:
+            validate_date(start_date)
+        if end_date:
+            validate_date(end_date)
+        self._page_report = GoogleAnalytics.pages_report(start_date, end_date)
+        PagesAnalytics.objects.all().delete()
+        PagesAnalytics.objects.bulk_create([PagesAnalytics(**obj) for obj in self._page_report])
+        return self.list_display
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(DeviceAnalytics)
+class ModelNameAdmin(admin.ModelAdmin):
+    _device_report = []
+    list_display = ['category', 'model', 'visitors']
+    list_filter = [('range_date', CustomDateRangeFilter), 'category', ModelDeviceFilter]
+    ordering = ['-visitors']
+
+    def get_list_display(self, request):
+        start_date = request.GET.get('range_date__range__gte')
+        end_date = request.GET.get('range_date__range__lte')
+        if start_date:
+            validate_date(start_date)
+        if end_date:
+            validate_date(end_date)
+        self._device_report = GoogleAnalytics.device_report(start_date, end_date)
+        DeviceAnalytics.objects.all().delete()
+        DeviceAnalytics.objects.bulk_create([DeviceAnalytics(**obj) for obj in self._device_report])
+        return self.list_display
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(ChannelAnalytics)
+class ModelNameAdmin(admin.ModelAdmin):
+    _channel_report = []
+    list_display = ['channel', 'visitors']
+    list_filter = [('range_date', CustomDateRangeFilter)]
+    ordering = ['-visitors']
+
+    def get_list_display(self, request):
+        start_date = request.GET.get('range_date__range__gte')
+        end_date = request.GET.get('range_date__range__lte')
+        if start_date:
+            validate_date(start_date)
+        if end_date:
+            validate_date(end_date)
+        self._channel_report = GoogleAnalytics.channels_report(start_date, end_date)
+        ChannelAnalytics.objects.all().delete()
+        ChannelAnalytics.objects.bulk_create([ChannelAnalytics(**obj) for obj in self._channel_report])
         return self.list_display
 
     def has_add_permission(self, request):

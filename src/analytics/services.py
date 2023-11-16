@@ -82,3 +82,66 @@ class GoogleAnalytics:
             city_report.append(obj)
 
         return city_report
+
+    @classmethod
+    def pages_report(cls, start_date=None, end_date=None):
+        page_report = []
+        client = BetaAnalyticsDataClient()
+
+        request = RunReportRequest(property=cls.get_property(),
+                                   date_ranges=[cls.get_date_obj(start_date, end_date)],
+                                   dimensions=[Dimension(name="pagePath")],
+                                   metrics=[Metric(name="screenPageViews")])
+        response = client.run_report(request=request)
+        for row in response.rows:
+            obj = {
+                'page_path': row.dimension_values[0].value,
+                'visitors': row.metric_values[0].value,
+            }
+            page_report.append(obj)
+
+        return page_report
+
+    @classmethod
+    def device_report(cls, start_date=None, end_date=None):
+        device_report = []
+        client = BetaAnalyticsDataClient()
+
+        request = RunReportRequest(
+            property=cls.get_property(),
+            date_ranges=[cls.get_date_obj(start_date, end_date)],
+            dimensions=[Dimension(name="deviceCategory"), Dimension(name="mobileDeviceModel")],
+            metrics=[Metric(name="activeUsers")]
+        )
+        response = client.run_report(request=request)
+
+        for row in response.rows:
+            obj = {
+                'category': row.dimension_values[0].value,
+                'model': row.dimension_values[1].value,
+                'visitors': row.metric_values[0].value
+            }
+            device_report.append(obj)
+        return device_report
+
+    @classmethod
+    def channels_report(cls, start_date=None, end_date=None):
+        channel_report = []
+        client = BetaAnalyticsDataClient()
+
+        request = RunReportRequest(
+            property=cls.get_property(),
+            date_ranges=[cls.get_date_obj(start_date, end_date)],
+            dimensions=[Dimension(name="sessionDefaultChannelGrouping")],
+            metrics=[Metric(name="sessions")]
+        )
+
+        response = client.run_report(request=request)
+
+        for row in response.rows:
+            obj = {
+                'channel': row.dimension_values[0].value,
+                'visitors': row.metric_values[0].value,
+            }
+            channel_report.append(obj)
+        return channel_report
