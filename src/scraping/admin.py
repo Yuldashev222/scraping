@@ -23,7 +23,7 @@ class ScrapingAdmin(admin.ModelAdmin):
 class UnnecessaryFileAdmin(admin.ModelAdmin):
     list_display = ['inform_id', 'website_link', 'pdf_source_link']
     list_display_links = None
-    list_filter = (('id', NumericRangeFilter),)
+    list_filter = (('inform_id', NumericRangeFilter),)
     search_fields = ['inform__link', 'pdf_source_link']
 
     def website_link(self, obj):

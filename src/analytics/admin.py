@@ -43,8 +43,15 @@ class ModelNameAdmin(admin.ModelAdmin):
         self._unique_visitors, self._website_visits, self._average_time_visitor = GoogleAnalytics.visitors_report(
             start_date=start_date,
             end_date=end_date)
-        self._database_searches = SearchDetail.objects.count()
-        self._database_unique_users_search_count = SearchDetail.objects.values('ipaddress').annotate(Count('pk')
+
+        search_database_query = {}
+        if start_date:
+            search_database_query['date_created__gte'] = start_date
+        if end_date:
+            search_database_query['date_created__lte'] = end_date
+
+        self._database_searches = SearchDetail.objects.filter(**search_database_query).count()
+        self._database_unique_users_search_count = SearchDetail.objects.filter(**search_database_query).values('ipaddress').annotate(Count('pk')
                                                                                                      ).count()
         return self.list_display
 
