@@ -43,3 +43,19 @@ class ModelDeviceFilter(admin.SimpleListFilter):
             if qs.exists():
                 return qs
         return queryset
+
+
+class CustomDateFilter(admin.SimpleListFilter):
+    title = 'date'
+    parameter_name = 'date'
+
+    def lookups(self, request, model_admin):
+        return (
+            (1, 'Idag'),
+            (2, 'Senaste 7 dagarna'),
+            (3, 'Denna månad'),
+            (4, 'Detta år'),
+        )
+
+    def queryset(self, request, queryset):
+        return queryset
