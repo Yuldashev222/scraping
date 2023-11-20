@@ -52,9 +52,18 @@ class GoogleAnalytics:
         )
 
         response = client.run_report(request)
-        active_users = response.rows[0].metric_values[0].value
-        website_visits = response.rows[0].metric_values[1].value
-        avg_engagement_time = response.rows[0].metric_values[2].value
+        try:
+            active_users = response.rows[0].metric_values[0].value
+        except IndexError:
+            active_users = 0
+        try:
+            website_visits = response.rows[0].metric_values[1].value
+        except IndexError:
+            website_visits = 0
+        try:
+            avg_engagement_time = response.rows[0].metric_values[2].value
+        except IndexError:
+            avg_engagement_time = 0
         return active_users, website_visits, int(float(avg_engagement_time))
 
     @classmethod
