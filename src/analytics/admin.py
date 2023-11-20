@@ -39,21 +39,20 @@ class ModelNameAdmin(admin.ModelAdmin):
         custom_date = request.GET.get('date')
         if custom_date and custom_date in ['1', '2', '3', '4']:
             now_date = now().date()
-            match custom_date:
-                case '1':
-                    start_date = str(now_date)
-                    end_date = str(now_date + datetime.timedelta(days=1))
-                case '2':
-                    start_date = str(now_date - datetime.timedelta(days=7))
-                    end_date = str(now_date + datetime.timedelta(days=1))
-                case '3':
-                    start_date = str(now_date.replace(day=1))
-                    now_date_month = now_date.month
-                    next_month = now_date.month + 1 if now_date_month < 12 else 1
-                    end_date = str(now_date.replace(day=1, month=next_month))
-                case '4':
-                    start_date = str(now_date.replace(month=1, day=1))
-                    end_date = str(now_date.replace(year=now_date.year + 1, month=1, day=1))
+            if custom_date == '1':
+                start_date = str(now_date)
+                end_date = str(now_date + datetime.timedelta(days=1))
+            elif custom_date == '2':
+                start_date = str(now_date - datetime.timedelta(days=7))
+                end_date = str(now_date + datetime.timedelta(days=1))
+            elif custom_date == '3':
+                start_date = str(now_date.replace(day=1))
+                now_date_month = now_date.month
+                next_month = now_date.month + 1 if now_date_month < 12 else 1
+                end_date = str(now_date.replace(day=1, month=next_month))
+            else:
+                start_date = str(now_date.replace(month=1, day=1))
+                end_date = str(now_date.replace(year=now_date.year + 1, month=1, day=1))
         else:
             if start_date:
                 validate_date(start_date)
@@ -117,21 +116,20 @@ class ModelNameAdmin(admin.ModelAdmin):
         custom_date = request.GET.get('date')
         if custom_date and custom_date in ['1', '2', '3', '4']:
             now_date = now().date()
-            match custom_date:
-                case '1':
-                    start_date = str(now_date)
-                    end_date = str(now_date + datetime.timedelta(days=1))
-                case '2':
-                    start_date = str(now_date - datetime.timedelta(days=7))
-                    end_date = str(now_date + datetime.timedelta(days=1))
-                case '3':
-                    start_date = str(now_date.replace(day=1))
-                    now_date_month = now_date.month
-                    next_month = now_date.month + 1 if now_date_month < 12 else 1
-                    end_date = str(now_date.replace(day=1, month=next_month))
-                case '4':
-                    start_date = str(now_date.replace(month=1, day=1))
-                    end_date = str(now_date.replace(year=now_date.year + 1, month=1, day=1))
+            if custom_date == '1':
+                start_date = str(now_date)
+                end_date = str(now_date + datetime.timedelta(days=1))
+            elif custom_date == '2':
+                start_date = str(now_date - datetime.timedelta(days=7))
+                end_date = str(now_date + datetime.timedelta(days=1))
+            elif custom_date == '3':
+                start_date = str(now_date.replace(day=1))
+                now_date_month = now_date.month
+                next_month = now_date.month + 1 if now_date_month < 12 else 1
+                end_date = str(now_date.replace(day=1, month=next_month))
+            else:
+                start_date = str(now_date.replace(month=1, day=1))
+                end_date = str(now_date.replace(year=now_date.year + 1, month=1, day=1))
         else:
             if start_date:
                 validate_date(start_date)
@@ -168,21 +166,20 @@ class ModelNameAdmin(admin.ModelAdmin):
         custom_date = request.GET.get('date')
         if custom_date and custom_date in ['1', '2', '3', '4']:
             now_date = now().date()
-            match custom_date:
-                case '1':
-                    start_date = str(now_date)
-                    end_date = str(now_date + datetime.timedelta(days=1))
-                case '2':
-                    start_date = str(now_date - datetime.timedelta(days=7))
-                    end_date = str(now_date + datetime.timedelta(days=1))
-                case '3':
-                    start_date = str(now_date.replace(day=1))
-                    now_date_month = now_date.month
-                    next_month = now_date.month + 1 if now_date_month < 12 else 1
-                    end_date = str(now_date.replace(day=1, month=next_month))
-                case '4':
-                    start_date = str(now_date.replace(month=1, day=1))
-                    end_date = str(now_date.replace(year=now_date.year + 1, month=1, day=1))
+            if custom_date == '1':
+                start_date = str(now_date)
+                end_date = str(now_date + datetime.timedelta(days=1))
+            elif custom_date == '2':
+                start_date = str(now_date - datetime.timedelta(days=7))
+                end_date = str(now_date + datetime.timedelta(days=1))
+            elif custom_date == '3':
+                start_date = str(now_date.replace(day=1))
+                now_date_month = now_date.month
+                next_month = now_date.month + 1 if now_date_month < 12 else 1
+                end_date = str(now_date.replace(day=1, month=next_month))
+            else:
+                start_date = str(now_date.replace(month=1, day=1))
+                end_date = str(now_date.replace(year=now_date.year + 1, month=1, day=1))
         else:
             if start_date:
                 validate_date(start_date)
@@ -216,21 +213,20 @@ class ModelNameAdmin(admin.ModelAdmin):
         custom_date = request.GET.get('date')
         if custom_date and custom_date in ['1', '2', '3', '4']:
             now_date = now().date()
-            match custom_date:
-                case '1':
-                    start_date = str(now_date)
-                    end_date = str(now_date + datetime.timedelta(days=1))
-                case '2':
-                    start_date = str(now_date - datetime.timedelta(days=7))
-                    end_date = str(now_date + datetime.timedelta(days=1))
-                case '3':
-                    start_date = str(now_date.replace(day=1))
-                    now_date_month = now_date.month
-                    next_month = now_date.month + 1 if now_date_month < 12 else 1
-                    end_date = str(now_date.replace(day=1, month=next_month))
-                case '4':
-                    start_date = str(now_date.replace(month=1, day=1))
-                    end_date = str(now_date.replace(year=now_date.year + 1, month=1, day=1))
+            if custom_date == '1':
+                start_date = str(now_date)
+                end_date = str(now_date + datetime.timedelta(days=1))
+            elif custom_date == '2':
+                start_date = str(now_date - datetime.timedelta(days=7))
+                end_date = str(now_date + datetime.timedelta(days=1))
+            elif custom_date == '3':
+                start_date = str(now_date.replace(day=1))
+                now_date_month = now_date.month
+                next_month = now_date.month + 1 if now_date_month < 12 else 1
+                end_date = str(now_date.replace(day=1, month=next_month))
+            else:
+                start_date = str(now_date.replace(month=1, day=1))
+                end_date = str(now_date.replace(year=now_date.year + 1, month=1, day=1))
         else:
             if start_date:
                 validate_date(start_date)
@@ -264,21 +260,20 @@ class ModelNameAdmin(admin.ModelAdmin):
         custom_date = request.GET.get('date')
         if custom_date and custom_date in ['1', '2', '3', '4']:
             now_date = now().date()
-            match custom_date:
-                case '1':
-                    start_date = str(now_date)
-                    end_date = str(now_date + datetime.timedelta(days=1))
-                case '2':
-                    start_date = str(now_date - datetime.timedelta(days=7))
-                    end_date = str(now_date + datetime.timedelta(days=1))
-                case '3':
-                    start_date = str(now_date.replace(day=1))
-                    now_date_month = now_date.month
-                    next_month = now_date.month + 1 if now_date_month < 12 else 1
-                    end_date = str(now_date.replace(day=1, month=next_month))
-                case '4':
-                    start_date = str(now_date.replace(month=1, day=1))
-                    end_date = str(now_date.replace(year=now_date.year + 1, month=1, day=1))
+            if custom_date == '1':
+                start_date = str(now_date)
+                end_date = str(now_date + datetime.timedelta(days=1))
+            elif custom_date == '2':
+                start_date = str(now_date - datetime.timedelta(days=7))
+                end_date = str(now_date + datetime.timedelta(days=1))
+            elif custom_date == '3':
+                start_date = str(now_date.replace(day=1))
+                now_date_month = now_date.month
+                next_month = now_date.month + 1 if now_date_month < 12 else 1
+                end_date = str(now_date.replace(day=1, month=next_month))
+            else:
+                start_date = str(now_date.replace(month=1, day=1))
+                end_date = str(now_date.replace(year=now_date.year + 1, month=1, day=1))
         else:
             if start_date:
                 validate_date(start_date)
