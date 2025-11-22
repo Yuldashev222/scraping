@@ -4,7 +4,7 @@ from datetime import datetime
 from collections import OrderedDict
 from elasticsearch_dsl import Q
 from rest_framework.response import Response
-from rest_framework.generics import ListAPIView, CreateAPIView
+from rest_framework.generics import ListAPIView, CreateAPIView, UpdateAPIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import ValidationError
@@ -20,10 +20,15 @@ class FileDetailCreateAPIView(CreateAPIView):
     serializer_class = FileDetailCreateSerializer
     permission_classes = (IsAuthenticated,)
 
-
     def perform_create(self, serializer):
         logo_id = Logo.objects.get(country=serializer.data['country'], region=serializer.data['region']).id
         serializer.save(logo_id=logo_id)
+
+
+class FileDetailUpdateAPIView(UpdateAPIView):
+    serializer_class = FileDetailCreateSerializer
+    permission_classes = (IsAuthenticated,)
+    queryset = FileDetail.objects
 
 
 class CustomPageNumberPagination(PageNumberPagination):
