@@ -38,6 +38,8 @@ class FileDetailDocumentSerializer(serializers.Serializer):
                 return '<br>'.join(obj.meta.highlight.text)
             except:
                 pass
+        if obj.first_page_text:
+            return obj.first_page_text[:2000]
         return obj.text[300:800]
 
     def get_country(self, obj):
