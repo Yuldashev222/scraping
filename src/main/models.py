@@ -123,8 +123,8 @@ class FileDetail(models.Model):
         if self.country and self.region and self.region[:3] != self.country:
             raise ValidationError({'region': 'country has no such region.'})
 
-        if not self.pk and FileDetail.objects.filter(pages__isnull=True).exists():
-            raise ValidationError('last file process extract text')
+#        if not self.pk and FileDetail.objects.filter(pages__isnull=True).exists():
+ #           raise ValidationError('last file process extract text')
 
     class Meta:
         verbose_name = 'fil'

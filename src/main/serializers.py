@@ -5,6 +5,7 @@ from .enums import s, f, InformRegion, InformCountry, p
 
 class FileDetailDocumentSerializer(serializers.Serializer):
     about_text = serializers.SerializerMethodField()
+    text = serializers.CharField()
     size = serializers.FloatField()
     pages = serializers.IntegerField()
     id = serializers.IntegerField()
