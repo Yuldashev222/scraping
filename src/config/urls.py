@@ -10,7 +10,7 @@ urlpatterns = [
     path('login/', TokenObtainPairView.as_view()),
     path('files/', SearchFilesView.as_view()),
     path('files/create/', FileDetailCreateAPIView.as_view()),
-    path('files/update/', FileDetailUpdateAPIView.as_view()),
+    path('files/update/<int:pk>/', FileDetailUpdateAPIView.as_view()),
     path('admin/', admin.site.urls),
 ]
 
