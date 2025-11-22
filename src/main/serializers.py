@@ -1,6 +1,15 @@
 from rest_framework import serializers
 
 from .enums import s, f, InformRegion, InformCountry, p
+from .models import FileDetail
+
+
+class FileDetailCreateSerializer(serializers.ModelSerializer):
+    # about_text = serializers.CharField(source="first_page_text", max_length=2000)
+
+    class Meta:
+        model = FileDetail
+        exclude = ("logo", "zip_file", "source_file_link", "inform")
 
 
 class FileDetailDocumentSerializer(serializers.Serializer):

@@ -4,34 +4,28 @@ from datetime import datetime
 from collections import OrderedDict
 from elasticsearch_dsl import Q
 from rest_framework.response import Response
-from rest_framework.generics import ListAPIView
+from rest_framework.generics import ListAPIView, CreateAPIView
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import ValidationError
 
 from .tasks import create_search_detail_obj
 from .enums import InformCountry, InformRegion
 from .models import FileDetail
 from .documents import FileDetailDocument
-from .serializers import FileDetailDocumentSerializer, FileDetailDocumentAuthSerializer
+from .serializers import FileDetailDocumentSerializer, FileDetailCreateSerializer
+
+
+class FileDetailCreateAPIView(CreateAPIView):
+    serializer_class = FileDetailCreateSerializer
+    permission_classes = (IsAuthenticated,)
+
 
 
 class CustomPageNumberPagination(PageNumberPagination):
     def get_paginated_response(self, data):
         count = self.page.paginator.count
         return count
-        search_text = str(self.request.query_params.get('search', '')).strip()
-        if bool(search_text):
-            create_search_detail_obj.delay(search_text=search_text,
-                                           files_cnt=count,
-                                           forwarded=self.request.META.get('HTTP_X_FORWARDED_FOR'),
-                                           real=self.request.META.get('HTTP_X_REAL_IP'),
-                                           remote=self.request.META.get('REMOTE_ADDR'))
-        return Response(OrderedDict([
-            ('count', count),
-            ('next', self.get_next_link()),
-            ('previous', self.get_previous_link()),
-            ('results', data)
-        ]))
 
 
 class SearchFilesView(ListAPIView):

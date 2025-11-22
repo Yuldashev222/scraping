@@ -4,11 +4,12 @@ from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from main.views import SearchFilesView
+from main.views import SearchFilesView, FileDetailCreateAPIView
 
 urlpatterns = [
     path('login/', TokenObtainPairView.as_view()),
     path('files/', SearchFilesView.as_view()),
+    path('files/create/', FileDetailCreateAPIView.as_view()),
     path('admin/', admin.site.urls),
 ]
 
