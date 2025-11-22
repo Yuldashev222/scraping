@@ -11,7 +11,7 @@ from rest_framework.exceptions import ValidationError
 
 from .tasks import create_search_detail_obj
 from .enums import InformCountry, InformRegion
-from .models import FileDetail
+from .models import FileDetail, Logo
 from .documents import FileDetailDocument
 from .serializers import FileDetailDocumentSerializer, FileDetailCreateSerializer
 
@@ -20,6 +20,10 @@ class FileDetailCreateAPIView(CreateAPIView):
     serializer_class = FileDetailCreateSerializer
     permission_classes = (IsAuthenticated,)
 
+
+    def perform_create(self, serializer):
+        logo_id = Logo.objects.get(country=serializer.data['country'], region=serializer.data['region']).id
+        serializer.save(logo_id=logo_id)
 
 
 class CustomPageNumberPagination(PageNumberPagination):
