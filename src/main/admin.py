@@ -114,6 +114,7 @@ class FileDetailAdmin(admin.ModelAdmin):
         'pages',
         'size',
         'is_active',
+        'first_page_text',
         'text',
     )
     readonly_fields = ('pages', 'logo', 'size', 'text', 'source_file_link')
