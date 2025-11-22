@@ -23,6 +23,7 @@ class FileDetailDocument(Document):
     class Django:
         model = FileDetail
         fields = [
+            'first_page_text',
             'pages',
             'size',
             'country',
