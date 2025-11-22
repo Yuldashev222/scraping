@@ -167,18 +167,5 @@ ELASTICSEARCH_DSL = {
     },
 }
 
-# LOGGING = {
-#    'version': 1,
-#    'handlers': {
-#        'console': {'class': 'logging.StreamHandler'}
-#    },
-#    'loggers': {
-#        'django.db.backends': {
-#            'handlers': ['console'],
-#            'level': 'DEBUG'
-#        }
-#    }
-# }
-
 PROPERTY_ID = env('PROPERTY_ID')
 GOOGLE_APPLICATION_CREDENTIALS = os.path.join(BASE_DIR, 'offentligabeslut.se.json')
