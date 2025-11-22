@@ -21,7 +21,9 @@ class FileDetailCreateAPIView(CreateAPIView):
     permission_classes = (IsAuthenticated,)
 
     def perform_create(self, serializer):
-        logo_id = Logo.objects.get(country=serializer.data['country'], region=serializer.data['region']).id
+        country = serializer.validated_data['country']
+        region = serializer.validated_data['region']
+        logo_id = Logo.objects.get(country=country, region=region).id
         serializer.save(logo_id=logo_id)
 
 
