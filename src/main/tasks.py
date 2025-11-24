@@ -56,6 +56,7 @@ def detect_pdfs(directory_path, zip_file_model_id):
         try:
             model_region = enums.InformRegion.choices()[enums.InformRegion.values().index(normalizing_region)][0]
         except ValueError:
+            print(f'InformRegion does not exist for {normalizing_region}')
             continue
 
         organs_path = os.path.join(directory_path, region)
@@ -67,12 +68,14 @@ def detect_pdfs(directory_path, zip_file_model_id):
             elif normalizing_organ == 'ks':
                 model_organ = 's'
             else:
+                print(f'Organ does not exist for {normalizing_organ}')
                 break
 
             years_path = os.path.join(organs_path, organ)
             try:
                 years = os.listdir(years_path)
-            except:
+            except Exception as e:
+                print(f'Could not find years for {years_path}, {e=}')
                 continue
             for year in years:
                 try:
@@ -98,7 +101,8 @@ def detect_pdfs(directory_path, zip_file_model_id):
                                                                file=f'zip_files/{directory_path.split("/")[-1]}/{region}/{organ}/{year}/{pdf_file}')
                         cnt += 1
                         extract_local_pdf(obj.id, obj.file.path)
-                except:
+                except Exception as e:
+                    print(f'{e=}')
                     continue
 
     zip_file_model.pdfs_count = cnt
