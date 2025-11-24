@@ -1,5 +1,6 @@
 import os
 import re
+import uuid
 import zipfile
 import ocrmypdf
 import subprocess
@@ -20,12 +21,13 @@ def convert_word_to_pdf(doc_path, path):
 
 def extract_zip_file(zip_file_location, pk):
     with zipfile.ZipFile(zip_file_location, 'r') as file_zip:
+        filename_no_ext = os.path.splitext(os.path.basename(zip_file_location))[0]
+        filename = f'{filename_no_ext}_{uuid.uuid4()}'
         zip_file_dir = os.path.join(
             os.path.dirname(zip_file_location),
-            zip_file_location[:str(zip_file_location).rindex('.')]
+            filename
         )
-        if not os.path.exists(zip_file_dir):
-            os.makedirs(zip_file_dir)
+        os.makedirs(zip_file_dir)
         file_zip.extractall(zip_file_dir)
         detect_pdfs.delay(zip_file_dir, pk)
 
