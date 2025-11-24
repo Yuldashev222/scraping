@@ -119,9 +119,9 @@ def extract_local_pdf(obj_id, pdf_file):
 
         if not obj.file_date:
             date = services.get_date_from_text(obj.text[:4000])
-            if date and not services.is_desired_date(date):
-                obj.delete()
-                return
+#            if date and not services.is_desired_date(date):
+#                obj.delete()
+#                return
             obj.file_date = date if bool(date) else None
         filename = f'{uuid4()}.pdf'
         location = f'{obj.country}/{obj.region}/{obj.organ}/{obj.file_date}/{filename}'

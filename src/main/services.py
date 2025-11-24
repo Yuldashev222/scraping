@@ -39,7 +39,6 @@ def myocr(input_file):
                  output_file=input_file,
                  deskew=True,
                  output_type='pdf',
-                 skip_big=50,
                  language='swe',
                  skip_text=True)
 
@@ -55,7 +54,7 @@ def get_pages_text(pdf_file, pages=3):
     if pages > 0:
         temp = '1' if pages == 1 else f'1-{pages}'
         ocrmypdf.ocr(input_file=pdf_file, output_file=pdf_file + '.first_page.pdf', deskew=True, output_type='pdf',
-                     skip_big=50, language='swe', skip_text=True, pages=temp)
+                     language='swe', skip_text=True, pages=temp)
 
         with open(pdf_file + '.first_page.pdf', 'rb') as file:
             pdf_reader = PdfReader(file)
