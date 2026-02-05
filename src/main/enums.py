@@ -15,8 +15,8 @@ class Organ(TextChoices):
     HALSO = 'halso', "Hälso- och sjukvårdsnämnden"
     KOLLEK = 'kollek', "Kollektivtrafiknämnden"
     REGLA = 'regla', "Regionala utvecklingsnämnden"
-    RS = 'RS', 'Regionstyrelsen'
-    RF = 'RF', 'Regionfullmäktige'
+    RS = 'rs', 'Regionstyrelsen'
+    RF = 'rf', 'Regionfullmäktige'
 
 
 class InformCountry(Enum):
