@@ -54,7 +54,7 @@ class Logo(models.Model):
 class Inform(models.Model):
     country = models.CharField(verbose_name='Län', max_length=3, choices=InformCountry.choices())
     region = models.CharField(verbose_name='Komun', max_length=7, choices=InformRegion.choices())
-    organ = models.CharField(max_length=1, choices=Organ.choices, blank=True, null=True)
+    organ = models.CharField(max_length=10, choices=Organ.choices, blank=True, null=True)
     link = models.URLField(max_length=400, unique=True, validators=[validate_link])
     desc = models.CharField(max_length=500, blank=True)
     pdfs_count = models.PositiveSmallIntegerField(default=0)
@@ -97,7 +97,7 @@ class FileDetail(models.Model):
     mode = models.CharField(max_length=10, choices=FileMode.choices, default=FileMode.KOMMUN)
     country = models.CharField(verbose_name='Län', max_length=3, choices=InformCountry.choices())
     region = models.CharField(verbose_name='Komun', max_length=7, choices=InformRegion.choices())
-    organ = models.CharField(max_length=1, choices=Organ.choices)
+    organ = models.CharField(max_length=10, choices=Organ.choices)
     file = models.FileField(
         upload_to=file_upload_location, max_length=500,
         validators=[FileExtensionValidator(allowed_extensions=['pdf'])]

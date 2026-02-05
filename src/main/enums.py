@@ -12,6 +12,9 @@ class FileMode(TextChoices):
 class Organ(TextChoices):
     S = "s", "kommunstyrelsen"
     F = "f", "kommunfullmäktige"
+    HALSO = 'halso', "Hälso- och sjukvårdsnämnden"
+    KOLLEK = 'kollek', "Kollektivtrafiknämnden"
+    REGLA = 'regla', "Regionala utvecklingsnämnden"
 
 
 class InformCountry(Enum):
