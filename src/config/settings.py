@@ -9,7 +9,7 @@ env = environ.Env()
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 SECRET_KEY = env("SECRET_KEY")
-DEBUG = False
+DEBUG = env("DEBUG") in {"true", "True", "1"}
 
 ALLOWED_HOSTS = ["filer.offentligabeslut.se", "127.0.0.1", "localhost"]
 
