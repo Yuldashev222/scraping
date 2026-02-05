@@ -7,9 +7,6 @@ exact_words = ['juster']
 class Organ(TextChoices):
     S = "s", "kommunstyrelsen"
     F = "f", "kommunfullmäktige"
-    TEST1 = "test1", "Test1"
-    TEST2 = "test2", "Test2"
-    TEST3 = "test3", "Test3"
 
 
 class InformCountry(Enum):
