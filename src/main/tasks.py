@@ -17,9 +17,9 @@ from urllib3.exceptions import InsecureRequestWarning
 from urllib.parse import urljoin, urlparse, urlunparse
 
 from scraping.models import Scraping, UnnecessaryFile
-from . import models, enums
+from . import models
 from . import services
-from .enums import Organ, FileMode
+from .enums import Organ, FileMode, InformCountry, InformRegion
 
 token = '[-!#-\'*+.\dA-Z^-z|~]+'
 qdtext = '[]-~\t !#-[]'
@@ -54,7 +54,7 @@ def detect_pdfs(directory_path, zip_file_model_id):
     for region in regions:
         normalizing_region = ' '.join(region.split()).strip().lower()
         try:
-            model_region = enums.InformRegion.choices()[enums.InformRegion.values().index(normalizing_region)][0]
+            model_region = InformRegion(normalizing_region)
         except ValueError:
             print(f'InformRegion does not exist for {normalizing_region}')
             continue
@@ -90,9 +90,9 @@ def detect_pdfs(directory_path, zip_file_model_id):
                             file_format = file_format.replace('docx', 'pdf').replace('doc', 'pdf').replace('rtf', 'pdf')
                             pdf_file = '.'.join(pdf_file.split('.')[:-1]) + f'.{file_format}'
 
-                        obj = models.FileDetail.objects.create(country=model_region[:3],
-                                                               region=model_region,
-                                                               mode=FileMode.REGION if model_region.endswith("_no") else FileMode.KOMMUN,
+                        obj = models.FileDetail.objects.create(country=model_region.value[:3],
+                                                               region=model_region.value,
+                                                               mode=FileMode.REGION if model_region.value.endswith("_no") else FileMode.KOMMUN,
                                                                is_active=True,
                                                                organ=model_organ,
                                                                zip_file_id=zip_file_model_id,
@@ -463,12 +463,12 @@ def from_excel(excel_file):
             continue
 
         country_index, region_index = (
-            enums.InformCountry.values().index(str(country).lower()),
-            enums.InformRegion.values().index(str(region).lower())
+            InformCountry.values().index(str(country).lower()),
+            InformRegion.values().index(str(region).lower())
         )
         valid_country, valid_region = (
-            enums.InformCountry.choices()[country_index][0],
-            enums.InformRegion.choices()[region_index][0]
+            InformCountry.choices()[country_index][0],
+            InformRegion.choices()[region_index][0]
         )
         organ = str(row[2].value).strip().lower()
         if organ not in Organ:
