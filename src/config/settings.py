@@ -158,6 +158,7 @@ SWAGGER_SETTINGS = {
 }
 
 CORS_ORIGIN_WHITELIST = [
+    "https://byggfirma-uppsala.com",
     "https://offentligabeslut.se",
     "https://app.offentligabeslut.se"
 ]
