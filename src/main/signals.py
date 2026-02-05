@@ -6,7 +6,7 @@ from .models import FileDetail, Logo, ZipFileUpload
 
 
 @receiver(post_delete, sender=FileDetail)
-def delete_file(instance, **kwargs):
+def delete_file_detail(instance, **kwargs):
     if instance.file and os.path.isfile(instance.file.path):
         os.remove(instance.file.path)
 
@@ -18,6 +18,6 @@ def delete_logo(instance, **kwargs):
 
 
 @receiver(post_delete, sender=ZipFileUpload)
-def delete_file(instance, **kwargs):
+def delete_zip_file_upload(instance, **kwargs):
     if instance.zip_file and os.path.isfile(instance.zip_file.path):
         os.remove(instance.zip_file.path)
