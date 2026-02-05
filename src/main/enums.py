@@ -17,6 +17,21 @@ class Organ(TextChoices):
     REGLA = 'regla', "Regionala utvecklingsnämnden"
     RS = 'rs', 'Regionstyrelsen'
     RF = 'rf', 'Regionfullmäktige'
+    SOCIAL = 'social', 'Social'
+    FUNKT = 'funkt', 'Funktionsstöd'
+    FORSK = 'forsk', 'Förskola'
+    UTBILD = 'utbild', 'Utbildning'
+    GARBET = 'garbet', 'Gymnasie / Arbetsmarknad'
+    ARBET = 'arbet', 'Arbetsmarknad'
+    STADB = 'stadb', 'Stadsbyggnad / byggnadsnämnd'
+    MILJH = 'miljh', 'Miljö & Hälsa'
+    ALDRE = 'aldre', 'Äldre'
+    KULFRI = 'kulfri', 'Kultur & fritid'
+    ENDAS = 'endas', 'Endas'
+    FRITID = 'FRITID', 'fritid'
+    TEKSER = 'tekser', 'Tekniska / service'
+    TRAFIK = 'trafik', 'Trafik'
+    EXPLOAT = 'exploat', 'Exploatering'
 
 
 class InformCountry(Enum):
