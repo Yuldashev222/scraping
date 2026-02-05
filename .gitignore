@@ -21,7 +21,6 @@ dump.rdb
 # Distribution / packaging
 .Python
 build/
-migrations/
 develop-eggs/
 dist/
 downloads/
