@@ -14,12 +14,12 @@ from django.conf import settings
 from django.db.utils import DataError
 from django.utils.timezone import now
 from urllib3.exceptions import InsecureRequestWarning
-from urllib.parse import urljoin, urlparse, urlunparse, unquote
+from urllib.parse import urljoin, urlparse, urlunparse
 
 from scraping.models import Scraping, UnnecessaryFile
 from . import models, enums
-from .enums import s, f
 from . import services
+from .enums import Organ
 
 token = '[-!#-\'*+.\dA-Z^-z|~]+'
 qdtext = '[]-~\t !#-[]'
@@ -63,11 +63,9 @@ def detect_pdfs(directory_path, zip_file_model_id):
         organs = os.listdir(organs_path)
         for organ in organs:
             normalizing_organ = ' '.join(organ.split()).strip().lower()
-            if normalizing_organ == 'kf':
-                model_organ = 'f'
-            elif normalizing_organ == 'ks':
-                model_organ = 's'
-            else:
+            try:
+                model_organ = Organ(normalizing_organ).value
+            except ValueError:
                 print(f'Organ does not exist for {normalizing_organ}')
                 break
 
@@ -123,9 +121,9 @@ def extract_local_pdf(obj_id, pdf_file):
 
         if not obj.file_date:
             date = services.get_date_from_text(obj.text[:4000])
-#            if date and not services.is_desired_date(date):
-#                obj.delete()
-#                return
+            #            if date and not services.is_desired_date(date):
+            #                obj.delete()
+            #                return
             obj.file_date = date if bool(date) else None
         filename = f'{uuid4()}.pdf'
         location = f'{obj.country}/{obj.region}/{obj.organ}/{obj.file_date}/{filename}'
@@ -472,11 +470,14 @@ def from_excel(excel_file):
             enums.InformRegion.choices()[region_index][0]
         )
         organ = str(row[2].value).strip().lower()
+        if organ not in Organ:
+            organ = None
+
         dct = {
             'link': row[3].value[:-1] if row[3].value[-1] == '/' else row[3].value,
             'country': valid_country,
             'region': valid_region,
-            'organ': organ if bool(organ) and (organ == 's' or organ == 'f') else None
+            'organ': organ
         }
         print(dct)
         if models.Inform.objects.filter(link=dct['link']).exists():

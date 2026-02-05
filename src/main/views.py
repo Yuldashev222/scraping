@@ -10,7 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import ValidationError
 
 from .tasks import create_search_detail_obj
-from .enums import InformCountry, InformRegion
+from .enums import InformCountry, InformRegion, Organ
 from .models import FileDetail, Logo
 from .documents import FileDetailDocument
 from .serializers import FileDetailDocumentSerializer, FileDetailCreateSerializer
@@ -93,7 +93,7 @@ class SearchFilesView(ListAPIView):
                 raise ValidationError({'file_date': 'not found'})
 
         if bool(filter_organ_query):
-            if len(filter_organ_query) == 1 and filter_organ_query in 'sf':
+            if len(filter_organ_query) == 1 and filter_organ_query in Organ:
                 search = search.query(self.filter_q_expression({'organ': filter_organ_query}))
             else:
                 raise ValidationError({'organ': 'not found'})

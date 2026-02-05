@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .enums import s, f, InformRegion, InformCountry, p
+from .enums import InformRegion, InformCountry, Organ
 from .models import FileDetail
 
 
@@ -24,12 +24,10 @@ class FileDetailDocumentSerializer(serializers.Serializer):
     organ = serializers.SerializerMethodField()
 
     def get_organ(self, obj):
-        if obj.organ == 's':
-            return s
-        elif obj.organ == 'f':
-            return f
-        else:
-            return p
+        try:
+            return Organ(obj.organ).label
+        except ValueError:
+            return "protokoll"
 
     def get_about_text(self, obj):
         if self.context['bol']:

@@ -4,7 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from django.core.validators import FileExtensionValidator
 
 from .validators import validate_link
-from .enums import InformCountry, InformRegion, ORGANS
+from .enums import InformCountry, InformRegion, Organ
 from .services import file_upload_location, extract_zip_file
 
 
@@ -54,7 +54,7 @@ class Logo(models.Model):
 class Inform(models.Model):
     country = models.CharField(verbose_name='Län', max_length=3, choices=InformCountry.choices())
     region = models.CharField(verbose_name='Komun', max_length=7, choices=InformRegion.choices())
-    organ = models.CharField(max_length=1, choices=ORGANS, blank=True, null=True)
+    organ = models.CharField(max_length=1, choices=Organ.choices, blank=True, null=True)
     link = models.URLField(max_length=400, unique=True, validators=[validate_link])
     desc = models.CharField(max_length=500, blank=True)
     pdfs_count = models.PositiveSmallIntegerField(default=0)
@@ -96,7 +96,7 @@ class Inform(models.Model):
 class FileDetail(models.Model):
     country = models.CharField(verbose_name='Län', max_length=3, choices=InformCountry.choices())
     region = models.CharField(verbose_name='Komun', max_length=7, choices=InformRegion.choices())
-    organ = models.CharField(max_length=1, choices=ORGANS)
+    organ = models.CharField(max_length=1, choices=Organ.choices)
     file = models.FileField(
         upload_to=file_upload_location, max_length=500,
         validators=[FileExtensionValidator(allowed_extensions=['pdf'])]

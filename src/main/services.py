@@ -8,7 +8,7 @@ from PyPDF2 import PdfReader
 from datetime import datetime
 from django.utils.timezone import now
 
-from .enums import s, f, exact_words, p
+from .enums import exact_words, Organ
 from .tasks import detect_pdfs
 
 
@@ -180,14 +180,14 @@ def get_date_from_text(text, ignore_file=False, first_date=False):
 
 
 def get_organ_from_text(text):
-    if p not in text:
+    if "protokoll" not in text:
         return False
-    if s in text and f in text:
-        return 's' if text.index(s) < text.index(f) else 'f'
-    elif s in text:
-        return 's'
-    elif f in text:
-        return 'f'
+    if Organ.S.label in text and Organ.F.label in text:
+        return Organ.S.value if text.index(Organ.S.label) < text.index(Organ.F.label) else Organ.F.value
+    elif Organ.S.label in text:
+        return Organ.S.value
+    elif Organ.F.label in text:
+        return Organ.F.value
     return False
 
 
