@@ -10,7 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import ValidationError
 
 from .tasks import create_search_detail_obj
-from .enums import InformCountry, InformRegion, Organ
+from .enums import InformCountry, InformRegion, Organ, FileMode
 from .models import FileDetail, Logo
 from .documents import FileDetailDocument
 from .serializers import FileDetailDocumentSerializer, FileDetailCreateSerializer
@@ -76,6 +76,7 @@ class SearchFilesView(ListAPIView):
     def get(self, request, *args, **kwargs):
 #        if request.META.get('HTTP_ORIGIN') != 'https://offentligabeslut.se':
  #           return Response({})
+        mode = str(request.query_params.get('mode', FileMode.KOMMUN)).strip()
         page = str(request.query_params.get('page', 1)).strip()
         search_query = str(request.query_params.get('search', '')).strip()
         ordering_query = str(request.query_params.get('ordering', '')).strip()
@@ -85,6 +86,14 @@ class SearchFilesView(ListAPIView):
         filter_country_query = str(request.query_params.get('country', '')).strip()
 
         search = self.document_class.search()
+
+
+        if mode not in FileMode:
+            raise ValidationError({'mode': 'is invalid'})
+        else:
+            search = search.query(self.filter_q_expression({'mode': mode}))
+            if mode == FileMode.REGION:
+                filter_region_query = None
 
         if bool(filter_date_query):
             if filter_date_query.isdigit() and len(filter_date_query) == 4:

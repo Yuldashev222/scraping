@@ -4,7 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from django.core.validators import FileExtensionValidator
 
 from .validators import validate_link
-from .enums import InformCountry, InformRegion, Organ
+from .enums import InformCountry, InformRegion, Organ, FileMode
 from .services import file_upload_location, extract_zip_file
 
 
@@ -94,6 +94,7 @@ class Inform(models.Model):
 
 
 class FileDetail(models.Model):
+    mode = models.CharField(max_length=10, choices=FileMode.choices, default=FileMode.KOMMUN)
     country = models.CharField(verbose_name='Län', max_length=3, choices=InformCountry.choices())
     region = models.CharField(verbose_name='Komun', max_length=7, choices=InformRegion.choices())
     organ = models.CharField(max_length=1, choices=Organ.choices)

@@ -28,6 +28,7 @@ class FileDetailDocument(Document):
             'size',
             'country',
             'region',
+            'mode',
             'organ',
             'is_active',
             'file_date',

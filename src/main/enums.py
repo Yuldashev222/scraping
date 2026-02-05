@@ -4,6 +4,11 @@ from django.db.models import TextChoices
 exact_words = ['juster']
 
 
+class FileMode(TextChoices):
+    KOMMUN = 'k', "Kommun"
+    REGION = 'r', "Region"
+
+
 class Organ(TextChoices):
     S = "s", "kommunstyrelsen"
     F = "f", "kommunfullmäktige"
