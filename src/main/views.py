@@ -101,11 +101,11 @@ class SearchFilesView(ListAPIView):
             else:
                 raise ValidationError({'file_date': 'not found'})
 
-        if bool(filter_organ_query):
-            if len(filter_organ_query) == 1 and filter_organ_query in Organ:
-                search = search.query(self.filter_q_expression({'organ': filter_organ_query}))
-            else:
+        if filter_organ_query:
+            if filter_organ_query not in Organ:
                 raise ValidationError({'organ': 'not found'})
+            else:
+                search = search.query(self.filter_q_expression({'organ': filter_organ_query}))
 
         if bool(filter_country_query):
             if filter_country_query in InformCountry.keys():
