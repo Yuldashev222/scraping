@@ -59,6 +59,7 @@ class InformCountry(Enum):
 
 
 class InformRegion(Enum):
+    no = '-'
     nor_arj = 'Arjeplog'
     nor_arv = 'Arvidsjaur'
     nor_bod = 'Boden'

@@ -179,7 +179,7 @@ def get_date_from_text(text, ignore_file=False, first_date=False):
     return False
 
 
-def get_organ_from_text(text):
+def get_organ_from_text(text):  # last
     if "protokoll" not in text:
         return False
     if Organ.S.label in text and Organ.F.label in text:
