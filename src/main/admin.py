@@ -85,7 +85,8 @@ class RegionListFilter(admin.SimpleListFilter):
 @admin.register(models.FileDetail)
 class FileDetailAdmin(admin.ModelAdmin):
     list_display = (
-       'id', 'link_id', 'country', 'region', 'organ', 'file_date', 'pages', 'size', 'is_active', 'is_verified', 'file'
+       'id', 'link_id', 'mode', 'country', 'region', 'organ',
+       'file_date', 'pages', 'size', 'is_active', 'is_verified', 'file'
     )
     list_editable = ['is_active']
     list_display_links = ('country', 'region', 'organ', 'file_date')
@@ -94,6 +95,7 @@ class FileDetailAdmin(admin.ModelAdmin):
     list_filter = (
         ('file_date', DateRangeFilter),
         ('inform_id', NumericRangeFilter),
+        'mode',
         'is_active',
         'is_verified',
         'file_date',
@@ -110,6 +112,7 @@ class FileDetailAdmin(admin.ModelAdmin):
         'country',
         'region',
         'organ',
+        'mode',
         'file_date',
         'pages',
         'size',
