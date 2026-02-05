@@ -59,6 +59,30 @@ class InformCountry(Enum):
 
 
 class InformRegion(Enum):
+    nor_no = 'nor_no'
+    ble_no = 'ble_no'
+    dal_no = 'dal_no'
+    got_no = 'got_no'
+    gav_no = 'gav_no'
+    hal_no = 'hal_no'
+    jam_no = 'jam_no'
+    jon_no = 'jon_no'
+    kal_no = 'kal_no'
+    kro_no = 'kro_no'
+    ska_no = 'ska_no'
+    sto_no = 'sto_no'
+    sod_no = 'sod_no'
+    upp_no = 'upp_no'
+    var_no = 'var_no'
+    vab_no = 'vab_no'
+    van_no = 'van_no'
+    vam_no = 'vam_no'
+    vag_no = 'vag_no'
+    ore_no = 'ore_no'
+    ost_no = 'ost_no'
+
+    # ---------
+
     nor_arj = 'Arjeplog'
     nor_arv = 'Arvidsjaur'
     nor_bod = 'Boden'
@@ -369,29 +393,6 @@ class InformRegion(Enum):
     ost_ydr = 'Ydre'
     ost_atv = 'Åtvidaberg'
     ost_ode = 'Ödeshög'
-
-    # ---------
-    nor_no = 'nor_no'
-    ble_no = 'ble_no'
-    dal_no = 'dal_no'
-    got_no = 'got_no'
-    gav_no = 'gav_no'
-    hal_no = 'hal_no'
-    jam_no = 'jam_no'
-    jon_no = 'jon_no'
-    kal_no = 'kal_no'
-    kro_no = 'kro_no'
-    ska_no = 'ska_no'
-    sto_no = 'sto_no'
-    sod_no = 'sod_no'
-    upp_no = 'upp_no'
-    var_no = 'var_no'
-    vab_no = 'vab_no'
-    van_no = 'van_no'
-    vam_no = 'vam_no'
-    vag_no = 'vag_no'
-    ore_no = 'ore_no'
-    ost_no = 'ost_no'
 
     @classmethod
     def choices(cls):

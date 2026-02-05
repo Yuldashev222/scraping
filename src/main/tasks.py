@@ -19,7 +19,7 @@ from urllib.parse import urljoin, urlparse, urlunparse
 from scraping.models import Scraping, UnnecessaryFile
 from . import models, enums
 from . import services
-from .enums import Organ
+from .enums import Organ, FileMode
 
 token = '[-!#-\'*+.\dA-Z^-z|~]+'
 qdtext = '[]-~\t !#-[]'
@@ -92,6 +92,7 @@ def detect_pdfs(directory_path, zip_file_model_id):
 
                         obj = models.FileDetail.objects.create(country=model_region[:3],
                                                                region=model_region,
+                                                               mode=FileMode.REGION if model_region.endswith("_no") else FileMode.KOMMUN,
                                                                is_active=True,
                                                                organ=model_organ,
                                                                zip_file_id=zip_file_model_id,
