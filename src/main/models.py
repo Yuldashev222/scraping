@@ -120,6 +120,11 @@ class FileDetail(models.Model):
     def __str__(self):
         return str(self.file)
 
+    def save(self, *args, **kwargs):
+        if self.region.endswith("_no"):
+            self.mode = FileMode.REGION
+        super().save(*args, **kwargs)
+
     def clean(self):
         if self.country and self.region and self.region[:3] != self.country:
             raise ValidationError({'region': 'country has no such region.'})
