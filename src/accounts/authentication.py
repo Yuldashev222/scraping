@@ -22,4 +22,4 @@ class IPAddressAuthentication(BaseAuthentication):
         except Exception as e:
             print(e)
             return None
-        return (CustomUser.default_client_user(), None)
+        return CustomUser.default_client_user(), None
