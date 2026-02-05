@@ -158,7 +158,8 @@ SWAGGER_SETTINGS = {
 }
 
 CORS_ORIGIN_WHITELIST = [
-    "https://offentligabeslut.se"
+    "https://offentligabeslut.se",
+    "https://app.offentligabeslut.se"
 ]
 
 ELASTICSEARCH_DSL = {
