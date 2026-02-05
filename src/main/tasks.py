@@ -96,7 +96,7 @@ def detect_pdfs(directory_path, zip_file_model_id):
                                                                is_active=True,
                                                                organ=model_organ,
                                                                zip_file_id=zip_file_model_id,
-                                                               logo_id=models.Logo.objects.get(region=model_region).id,
+                                                               logo_id=models.Logo.objects.get(region=model_region.value).id,
                                                                file=f'zip_files/{directory_path.split("/")[-1]}/{region}/{organ}/{year}/{pdf_file}')
                         cnt += 1
                         extract_local_pdf(obj.id, obj.file.path)
