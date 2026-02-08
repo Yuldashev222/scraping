@@ -13,13 +13,16 @@ class IPAddressAuthentication(BaseAuthentication):
         try:
             first_part_ipaddress = ipaddress[:ipaddress.rindex('.')]
             last_part_ipaddress = int(ipaddress[ipaddress.rindex('.') + 1:])
-            if not RangeIpAddress.objects.filter(
-                    first_part_ipaddress=first_part_ipaddress,
-                    start__lte=last_part_ipaddress,
-                    end__gte=last_part_ipaddress,
-            ).exists():
+            range_ip = RangeIpAddress.objects.filter(
+                is_active=True,
+                first_part_ipaddress=first_part_ipaddress,
+                start__lte=last_part_ipaddress,
+                end__gte=last_part_ipaddress,
+            ).first()
+            if not range_ip:
                 return None
         except Exception as e:
             print(e)
             return None
-        return CustomUser.default_client_user(), None
+
+        return CustomUser.default_client_user(), range_ip

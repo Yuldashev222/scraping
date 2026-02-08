@@ -96,7 +96,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-LANGUAGE_CODE = 'sv'
+LANGUAGE_CODE = os.environ.get("LANGUAGE_CODE", "sv")
 
 TIME_ZONE = 'Europe/Stockholm'
 

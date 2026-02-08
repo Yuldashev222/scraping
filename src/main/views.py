@@ -9,6 +9,8 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import ValidationError
 
+from accounts.throttles import IpRangeThrottle
+from accounts.permissions import IsAllowedIP
 from .tasks import create_search_detail_obj
 from .enums import InformCountry, InformRegion, Organ, FileMode
 from .models import FileDetail, Logo
@@ -43,12 +45,9 @@ class SearchFilesView(ListAPIView):
     pagination_class = CustomPageNumberPagination
     document_class = FileDetailDocument
     queryset = FileDetail.objects.all()
-    permission_classes = ()
-
-    def get_serializer_class(self):
-        # if self.request.user.is_authenticated:
-        return FileDetailDocumentSerializer
-        # return FileDetailDocumentAuthSerializer
+    permission_classes = (IsAllowedIP,)
+    throttle_classes = (IpRangeThrottle,)
+    serializer_class = FileDetailDocumentSerializer
 
     @staticmethod
     def all_q_expression(query):
@@ -74,8 +73,6 @@ class SearchFilesView(ListAPIView):
         return Q('range', file_date={'gte': start_date, 'lte': end_date})
 
     def get(self, request, *args, **kwargs):
-#        if request.META.get('HTTP_ORIGIN') != 'https://offentligabeslut.se':
- #           return Response({})
         mode = str(request.query_params.get('mode', FileMode.KOMMUN)).strip()
         page = str(request.query_params.get('page', 1)).strip()
         search_query = str(request.query_params.get('search', '')).strip()

@@ -9,9 +9,20 @@ admin.site.site_header = 'Offentligabeslut site admin'
 
 @admin.register(RangeIpAddress)
 class RangeIpAddressAdmin(admin.ModelAdmin):
-    list_display = ('first_part_ipaddress', 'start', 'end', 'date_created', 'owner')
-    list_display_links = ('owner', 'first_part_ipaddress', 'date_created')
+    list_display = ('owner', 'first_part_ipaddress', 'is_active', 'rate_limit_per_minute',
+                    'rate_limit_per_month',
+                    'month_requests',
+                    'month_started',
+                    )
+    list_display_links = list_display
     search_fields = ('owner',)
+    readonly_fields = (
+        "minute_requests",
+        "month_requests",
+        "current_minute",
+        "month_requests",
+        "month_started",
+    )
 
 
 @admin.register(CustomUser)

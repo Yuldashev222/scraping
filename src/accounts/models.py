@@ -2,7 +2,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.hashers import make_password
-from django.core.validators import MaxValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.contrib.auth.models import AbstractUser, UserManager, apps
 from phonenumber_field.modelfields import PhoneNumberField
 
@@ -18,6 +18,22 @@ class RangeIpAddress(models.Model):
     end = models.PositiveSmallIntegerField(validators=[MaxValueValidator(255)])
     date_created = models.DateTimeField('date added', auto_now_add=True)
 
+    is_active = models.BooleanField(default=True)
+    rate_limit_per_minute = models.PositiveSmallIntegerField(
+        verbose_name="Rate limit per minute",
+        help_text='How many times per minute can a client send requests?',
+        validators=[MinValueValidator(1)],
+    )
+    rate_limit_per_month = models.PositiveBigIntegerField(
+        verbose_name="Rate limit per month",
+        help_text='How many times per month can a client send requests?',
+        validators=[MinValueValidator(1)]
+    )
+    minute_requests = models.PositiveIntegerField(default=0)
+    current_minute = models.DateTimeField(null=True, blank=True)
+    month_requests = models.PositiveBigIntegerField(default=0)
+    month_started = models.DateTimeField(null=True, blank=True)
+
     class Meta:
         unique_together = ['first_part_ipaddress', 'start', 'end']
         verbose_name_plural = 'Range Ip Addresses'
@@ -25,6 +41,10 @@ class RangeIpAddress(models.Model):
     def clean(self):
         if self.start and self.end and self.start > self.end:
             raise ValidationError({'start': f'must be less than {self.end}'})
+        if self.rate_limit_per_month < self.rate_limit_per_minute:
+            raise ValidationError(
+                {"rate_limit_per_minute": "Rate limit per minute must be less than per month"}
+            )
 
     def __str__(self):
         return f'{self.first_part_ipaddress}: [{self.start}, {self.end}]'
