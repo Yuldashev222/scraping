@@ -52,7 +52,7 @@ def detect_pdfs(directory_path, zip_file_model_id):
 
     regions = os.listdir(directory_path)
     for region in regions:
-        normalizing_region = ' '.join(region.split()).strip().lower()
+        normalizing_region = ' '.join(region.split()).strip()
         try:
             model_region = InformRegion(normalizing_region)
         except ValueError:
