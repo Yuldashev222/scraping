@@ -62,7 +62,11 @@ def detect_pdfs(directory_path, zip_file_model_id):
         organs_path = os.path.join(directory_path, region)
         organs = os.listdir(organs_path)
         for organ in organs:
-            normalizing_organ = ' '.join(organ.split()).strip().lower()
+            normalizing_organ = ' '.join(organ.split()).strip()
+            if normalizing_organ == "KF":
+                normalizing_organ = 'f'
+            elif normalizing_organ == "KS":
+                normalizing_organ = 's'
             try:
                 model_organ = Organ(normalizing_organ).value
             except ValueError:
