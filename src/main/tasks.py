@@ -53,6 +53,7 @@ def detect_pdfs(directory_path, zip_file_model_id):
     regions = os.listdir(directory_path)
     for region in regions:
         normalizing_region = ' '.join(region.split()).strip()
+        print(normalizing_region)
         try:
             model_region = InformRegion(normalizing_region)
         except ValueError:
@@ -63,6 +64,7 @@ def detect_pdfs(directory_path, zip_file_model_id):
         organs = os.listdir(organs_path)
         for organ in organs:
             normalizing_organ = ' '.join(organ.split()).strip()
+            print(normalizing_organ)
             if normalizing_organ == "KF":
                 normalizing_organ = 'f'
             elif normalizing_organ == "KS":
@@ -74,15 +76,18 @@ def detect_pdfs(directory_path, zip_file_model_id):
                 break
 
             years_path = os.path.join(organs_path, organ)
+
             try:
                 years = os.listdir(years_path)
             except Exception as e:
                 print(f'Could not find years for {years_path}, {e=}')
                 continue
             for year in years:
+                print(year)
                 try:
                     pdf_files = os.listdir(os.path.join(years_path, year))
                     for pdf_file in pdf_files:
+                        print(pdf_file)
                         location = f'{directory_path}/{region}/{organ}/{year}/{pdf_file}'
                         pdf_file = "".join(pdf_file.split())
                         file_format = pdf_file.split('.')[-1].lower()
