@@ -46,6 +46,7 @@ headers_html = {
 @shared_task
 def detect_pdfs(directory_path, zip_file_model_id):
     print('detect_pdfs ------------------------------------------- start')
+    time.sleep(5)
     zip_file_model = models.ZipFileUpload.objects.get(id=zip_file_model_id)
 
     cnt = 0
