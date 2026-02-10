@@ -1,3 +1,5 @@
+import time
+
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
@@ -35,6 +37,7 @@ class ZipFileUpload(models.Model):
         created = True if not self.pk else False
         super().save(*args, **kwargs)
         if created:
+            time.sleep(5)
             extract_zip_file(self.zip_file.path, self.id)
 
 
