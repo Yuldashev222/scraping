@@ -55,7 +55,7 @@ def detect_pdfs(directory_path, zip_file_model_id):
         normalizing_region = ' '.join(region.split()).strip()
         print(normalizing_region)
         try:
-            model_region = InformRegion(normalizing_region).value
+            model_region = InformRegion(normalizing_region).name
             print(model_region)
         except ValueError:
             print(f'InformRegion does not exist for {normalizing_region}')
