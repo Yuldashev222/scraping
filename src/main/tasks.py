@@ -55,7 +55,8 @@ def detect_pdfs(directory_path, zip_file_model_id):
         normalizing_region = ' '.join(region.split()).strip()
         print(normalizing_region)
         try:
-            model_region = InformRegion(normalizing_region)
+            model_region = InformRegion(normalizing_region).value
+            print(model_region)
         except ValueError:
             print(f'InformRegion does not exist for {normalizing_region}')
             continue
@@ -99,13 +100,13 @@ def detect_pdfs(directory_path, zip_file_model_id):
                             file_format = file_format.replace('docx', 'pdf').replace('doc', 'pdf').replace('rtf', 'pdf')
                             pdf_file = '.'.join(pdf_file.split('.')[:-1]) + f'.{file_format}'
 
-                        obj = models.FileDetail.objects.create(country=model_region.value[:3],
-                                                               region=model_region.value,
-                                                               mode=FileMode.REGION if model_region.value.endswith("_no") else FileMode.KOMMUN,
+                        obj = models.FileDetail.objects.create(country=model_region[:3],
+                                                               region=model_region,
+                                                               mode=FileMode.REGION if model_region.endswith("_no") else FileMode.KOMMUN,
                                                                is_active=True,
                                                                organ=model_organ,
                                                                zip_file_id=zip_file_model_id,
-                                                               logo_id=models.Logo.objects.get(region=model_region.value).id,
+                                                               logo_id=models.Logo.objects.get(region=model_region).id,
                                                                file=f'zip_files/{directory_path.split("/")[-1]}/{region}/{organ}/{year}/{pdf_file}')
                         cnt += 1
                         extract_local_pdf(obj.id, obj.file.path)
