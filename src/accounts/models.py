@@ -33,6 +33,7 @@ class RangeIpAddress(models.Model):
     current_minute = models.DateTimeField(null=True, blank=True)
     month_requests = models.PositiveBigIntegerField(default=0)
     month_started = models.DateTimeField(null=True, blank=True)
+    can_see_text = models.BooleanField(default=False, help_text='Can this IP range see the full text of files?')
 
     class Meta:
         unique_together = ['first_part_ipaddress', 'start', 'end']

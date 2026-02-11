@@ -57,6 +57,14 @@ class FileDetailDocumentSerializer(serializers.Serializer):
             return request.build_absolute_uri(obj.file)
         return None
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        request = self.context.get('request')
+        auth = getattr(request, 'auth', None)
+        if not auth or not getattr(auth, 'can_see_text', False):
+            data.pop('text', None)
+        return data
+
 
 class FileDetailDocumentAuthSerializer(FileDetailDocumentSerializer):
     def get_file(self, obj):
