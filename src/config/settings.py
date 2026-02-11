@@ -26,6 +26,7 @@ DEFAULT_INSTALLED_APPS = [
 SECOND_INSTALLED_APPS = [
     'django_elasticsearch_dsl',
     'rest_framework',
+    'drf_yasg',
     'phonenumber_field',
     'corsheaders',
     'rangefilter',
@@ -154,13 +155,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'accounts.CustomUser'
 
 SWAGGER_SETTINGS = {
-    'SECURITY_DEFINITIONS': {
-        'JWT [Bearer {JWT}]': {
-            'type': 'apiKey',
-            'name': 'Authorization',
-            'in': 'header'
-        },
-    }
+    'USE_SESSION_AUTH': False,
+    'SECURITY_DEFINITIONS': {},
+    'DEFAULT_INFO': 'config.urls.swagger_info',
 }
 
 CORS_ORIGIN_WHITELIST = [

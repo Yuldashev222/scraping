@@ -8,6 +8,8 @@ from rest_framework.generics import ListAPIView, CreateAPIView, UpdateAPIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import ValidationError
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 from accounts.throttles import IpRangeThrottle
 from accounts.permissions import IsAllowedIP
@@ -72,6 +74,148 @@ class SearchFilesView(ListAPIView):
         end_date = datetime(year=year, month=12, day=last_day_of_month)
         return Q('range', file_date={'gte': start_date, 'lte': end_date})
 
+    @swagger_auto_schema(
+        operation_id='search_files',
+        operation_summary='Search municipal documents',
+        operation_description=(
+            'Full-text search across Swedish municipal documents (protokoll) stored as PDFs.\n\n'
+            '**Search syntax:**\n'
+            '- Basic: `budget 2024` — matches documents containing all words\n'
+            '- Exact phrase: `"kommunstyrelsen protokoll"` — matches the exact phrase\n'
+            '- Exclude: `budget -skola` — excludes documents containing "skola"\n\n'
+            '**Sorting:**\n'
+            '- When `search` is provided: sorted by relevance (default) or by date with `ordering=-file_date`\n'
+            '- When `search` is empty: sorted by date descending\n\n'
+            '**Note:** The `text` field in the response is only available for authorized IP ranges.'
+        ),
+        manual_parameters=[
+            openapi.Parameter(
+                'search', openapi.IN_QUERY,
+                description=(
+                    'Search query. Supports exact phrases in quotes and word exclusion with `-` prefix.\n\n'
+                    'Examples: `budget`, `"kommunstyrelsen protokoll"`, `budget -skola`'
+                ),
+                type=openapi.TYPE_STRING,
+                default='',
+            ),
+            openapi.Parameter(
+                'mode', openapi.IN_QUERY,
+                description='Document mode: `k` = Kommun (municipality), `r` = Region',
+                type=openapi.TYPE_STRING,
+                enum=['k', 'r'],
+                default='k',
+            ),
+            openapi.Parameter(
+                'page', openapi.IN_QUERY,
+                description='Page number (10 results per page)',
+                type=openapi.TYPE_INTEGER,
+                default=1,
+            ),
+            openapi.Parameter(
+                'ordering', openapi.IN_QUERY,
+                description='Sort order. Use `-file_date` to sort by date. Only applies when `search` is provided (otherwise always sorted by date).',
+                type=openapi.TYPE_STRING,
+                enum=['-file_date'],
+            ),
+            openapi.Parameter(
+                'country', openapi.IN_QUERY,
+                description=(
+                    'Filter by county (län) code.\n\n'
+                    'Examples: `sto` (Stockholm), `ska` (Skåne), `vag` (Västra Götaland), '
+                    '`upp` (Uppsala), `ore` (Örebro)'
+                ),
+                type=openapi.TYPE_STRING,
+            ),
+            openapi.Parameter(
+                'region', openapi.IN_QUERY,
+                description=(
+                    'Filter by municipality (kommun) code.\n\n'
+                    'Examples: `sto_sto` (Stockholm), `ska_mal` (Malmö), `vag_got` (Göteborg), '
+                    '`upp_upp` (Uppsala)'
+                ),
+                type=openapi.TYPE_STRING,
+            ),
+            openapi.Parameter(
+                'organ', openapi.IN_QUERY,
+                description=(
+                    'Filter by organ type.\n\n'
+                    'Values: `s` (Kommunstyrelsen), `f` (Kommunfullmäktige), '
+                    '`rs` (Regionstyrelsen), `rf` (Regionfullmäktige), '
+                    '`social` (Social), `utbild` (Utbildning), `stadb` (Stadsbyggnad), and more'
+                ),
+                type=openapi.TYPE_STRING,
+                enum=[choice[0] for choice in Organ.choices],
+            ),
+            openapi.Parameter(
+                'file_date', openapi.IN_QUERY,
+                description='Filter by year (4-digit). Example: `2024`',
+                type=openapi.TYPE_STRING,
+            ),
+        ],
+        responses={
+            200: openapi.Response(
+                description='Search results',
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'count': openapi.Schema(
+                            type=openapi.TYPE_INTEGER,
+                            description='Total number of matching documents',
+                        ),
+                        'results': openapi.Schema(
+                            type=openapi.TYPE_ARRAY,
+                            description='Array of document objects (max 10 per page)',
+                            items=openapi.Schema(
+                                type=openapi.TYPE_OBJECT,
+                                properties={
+                                    'id': openapi.Schema(type=openapi.TYPE_INTEGER, description='Document ID'),
+                                    'about_text': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        description='Highlighted search snippet (HTML with <mark> tags) or first page preview',
+                                    ),
+                                    'text': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        description='Full document text (only for authorized IP ranges with can_see_text=true)',
+                                    ),
+                                    'size': openapi.Schema(type=openapi.TYPE_NUMBER, description='File size in MB'),
+                                    'pages': openapi.Schema(type=openapi.TYPE_INTEGER, description='Number of pages'),
+                                    'file': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        format='uri',
+                                        description='URL to download the PDF file',
+                                    ),
+                                    'logo': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        format='uri',
+                                        description='URL of the municipality logo',
+                                    ),
+                                    'file_date': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        format='date',
+                                        description='Document date (YYYY-MM-DD)',
+                                    ),
+                                    'country': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        description='County name (e.g. Stockholm, Skåne)',
+                                    ),
+                                    'region': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        description='Municipality name (e.g. Malmö, Uppsala)',
+                                    ),
+                                    'organ': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        description='Organ name (e.g. kommunstyrelsen, kommunfullmäktige)',
+                                    ),
+                                },
+                            ),
+                        ),
+                    },
+                ),
+            ),
+            400: openapi.Response(description='Invalid filter parameter (mode, organ, region, country, or file_date)'),
+            429: openapi.Response(description='Rate limit exceeded. Retry after the time specified in the Retry-After header.'),
+        },
+    )
     def get(self, request, *args, **kwargs):
         mode = str(request.query_params.get('mode', FileMode.KOMMUN)).strip()
         page = str(request.query_params.get('page', 1)).strip()
