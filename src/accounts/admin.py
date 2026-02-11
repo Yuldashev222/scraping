@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.models import Group
 
-from .models import CustomUser, RangeIpAddress
+from .models import CustomUser, RangeIpAddress, UnknownIpRateLimit
 
 admin.site.unregister(Group)
 admin.site.site_header = 'Offentligabeslut site admin'
@@ -51,6 +51,17 @@ class CustomUserAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         return super().get_queryset(request).filter(is_staff=True)
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(UnknownIpRateLimit)
+class UnknownIpRateLimitAdmin(admin.ModelAdmin):
+    list_display = ('rate_limit_per_minute',)
+
+    def has_add_permission(self, request):
+        return not UnknownIpRateLimit.objects.exists()
 
     def has_delete_permission(self, request, obj=None):
         return False

@@ -1,9 +1,13 @@
 from datetime import timedelta
 
+from django.core.cache import cache
 from django.db import transaction
 from django.utils import timezone
 from rest_framework.exceptions import Throttled
 from rest_framework.throttling import BaseThrottle
+
+from .models import UnknownIpRateLimit
+from .services import get_client_ip
 
 MONTH_DAYS = 30
 
@@ -12,10 +16,30 @@ class IpRangeThrottle(BaseThrottle):
     def __init__(self):
         self._wait_seconds = None
 
+    def _allow_unknown_ip(self, request):
+        ip = get_client_ip(request)
+        if not ip:
+            return True
+
+        rate_limit_obj = UnknownIpRateLimit.objects.first()
+        if not rate_limit_obj:
+            return True
+
+        limit = rate_limit_obj.rate_limit_per_minute
+        cache_key = f'unknown_ip_{ip}'
+        requests_count = cache.get(cache_key, 0)
+
+        if requests_count >= limit:
+            self._wait_seconds = 60
+            return False
+
+        cache.set(cache_key, requests_count + 1, timeout=60)
+        return True
+
     def allow_request(self, request, view):
         range_ip = request.auth
         if range_ip is None:
-            return True
+            return self._allow_unknown_ip(request)
 
         if range_ip.rate_limit_per_minute == 0 or range_ip.rate_limit_per_month == 0:
             self._wait_seconds = 60

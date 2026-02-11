@@ -107,3 +107,22 @@ class CustomUser(AbstractUser):
     class Meta:
         verbose_name = _('anställd')
         verbose_name_plural = _('anställda')
+
+
+class UnknownIpRateLimit(models.Model):
+    rate_limit_per_minute = models.PositiveSmallIntegerField(
+        default=10,
+        validators=[MinValueValidator(1)],
+        help_text='How many requests per minute for unknown IPs?'
+    )
+
+    class Meta:
+        verbose_name = 'Unknown IP Rate Limit'
+        verbose_name_plural = 'Unknown IP Rate Limit'
+
+    def clean(self):
+        if not self.pk and UnknownIpRateLimit.objects.exists():
+            raise ValidationError('Only one entry allowed.')
+
+    def __str__(self):
+        return f'{self.rate_limit_per_minute} req/min'
