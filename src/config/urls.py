@@ -7,7 +7,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
-from main.views import SearchFilesView, FileDetailCreateAPIView, FileDetailUpdateAPIView
+from main.views import SearchFilesView, FileDetailCreateAPIView, FileDetailUpdateAPIView, FiltersView
 
 swagger_info = openapi.Info(
     title="Offentligabeslut API",
@@ -35,12 +35,14 @@ schema_view = get_schema_view(
     permission_classes=(permissions.AllowAny,),
     patterns=[
         path('files/', SearchFilesView.as_view()),
+        path('filters/', FiltersView.as_view()),
     ],
 )
 
 urlpatterns = [
     path('login/', TokenObtainPairView.as_view()),
     path('files/', SearchFilesView.as_view()),
+    path('filters/', FiltersView.as_view()),
     # path('files/create/', FileDetailCreateAPIView.as_view()),
     # path('files/update/<int:pk>/', FileDetailUpdateAPIView.as_view()),
     path('admin/', admin.site.urls),

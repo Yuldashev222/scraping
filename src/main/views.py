@@ -5,8 +5,9 @@ from collections import OrderedDict
 from elasticsearch_dsl import Q
 from rest_framework.response import Response
 from rest_framework.generics import ListAPIView, CreateAPIView, UpdateAPIView
+from rest_framework.views import APIView
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.exceptions import ValidationError
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
@@ -35,6 +36,68 @@ class FileDetailUpdateAPIView(UpdateAPIView):
     serializer_class = FileDetailCreateSerializer
     permission_classes = (IsAuthenticated,)
     queryset = FileDetail.objects
+
+
+class FiltersView(APIView):
+    permission_classes = (AllowAny,)
+    throttle_classes = ()
+
+    _filter_item = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            'value': openapi.Schema(type=openapi.TYPE_STRING),
+            'label': openapi.Schema(type=openapi.TYPE_STRING),
+        },
+    )
+    _region_item = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            'value': openapi.Schema(type=openapi.TYPE_STRING),
+            'label': openapi.Schema(type=openapi.TYPE_STRING),
+            'country': openapi.Schema(type=openapi.TYPE_STRING, description='Parent country code'),
+        },
+    )
+
+    @swagger_auto_schema(
+        operation_id='get_filters',
+        operation_summary='Get all available filter options',
+        operation_description=(
+            'Returns all valid values for the filter parameters used in `/files/`.\n\n'
+            'Use this endpoint to populate dropdowns and validate filter values on the client side.\n\n'
+            '- **countries** — Swedish counties (län)\n'
+            '- **regions** — Municipalities (kommun), each linked to a country\n'
+            '- **organs** — Types of municipal organs\n'
+            '- **modes** — Document modes (Kommun / Region)'
+        ),
+        responses={
+            200: openapi.Response(
+                description='Filter options',
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'countries': openapi.Schema(type=openapi.TYPE_ARRAY, items=_filter_item),
+                        'regions': openapi.Schema(type=openapi.TYPE_ARRAY, items=_region_item),
+                        'organs': openapi.Schema(type=openapi.TYPE_ARRAY, items=_filter_item),
+                        'modes': openapi.Schema(type=openapi.TYPE_ARRAY, items=_filter_item),
+                    },
+                ),
+            ),
+        },
+    )
+    def get(self, request):
+        countries = [{'value': c.name, 'label': c.value} for c in InformCountry]
+        regions = [
+            {'value': r.name, 'label': r.value, 'country': r.name[:3]}
+            for r in InformRegion
+        ]
+        organs = [{'value': value, 'label': label} for value, label in Organ.choices]
+        modes = [{'value': value, 'label': label} for value, label in FileMode.choices]
+        return Response({
+            'countries': countries,
+            'regions': regions,
+            'organs': organs,
+            'modes': modes,
+        })
 
 
 class CustomPageNumberPagination(PageNumberPagination):
@@ -121,8 +184,8 @@ class SearchFilesView(ListAPIView):
                 'country', openapi.IN_QUERY,
                 description=(
                     'Filter by county (län) code.\n\n'
-                    'Examples: `sto` (Stockholm), `ska` (Skåne), `vag` (Västra Götaland), '
-                    '`upp` (Uppsala), `ore` (Örebro)'
+                    'Examples: `sto` (Stockholm), `ska` (Skåne), `vag` (Västra Götaland)\n\n'
+                    'See `GET /filters/` for all valid values.'
                 ),
                 type=openapi.TYPE_STRING,
             ),
@@ -130,8 +193,8 @@ class SearchFilesView(ListAPIView):
                 'region', openapi.IN_QUERY,
                 description=(
                     'Filter by municipality (kommun) code.\n\n'
-                    'Examples: `sto_sto` (Stockholm), `ska_mal` (Malmö), `vag_got` (Göteborg), '
-                    '`upp_upp` (Uppsala)'
+                    'Examples: `sto_sto` (Stockholm), `ska_mal` (Malmö), `vag_got` (Göteborg)\n\n'
+                    'See `GET /filters/` for all valid values.'
                 ),
                 type=openapi.TYPE_STRING,
             ),
@@ -139,9 +202,8 @@ class SearchFilesView(ListAPIView):
                 'organ', openapi.IN_QUERY,
                 description=(
                     'Filter by organ type.\n\n'
-                    'Values: `s` (Kommunstyrelsen), `f` (Kommunfullmäktige), '
-                    '`rs` (Regionstyrelsen), `rf` (Regionfullmäktige), '
-                    '`social` (Social), `utbild` (Utbildning), `stadb` (Stadsbyggnad), and more'
+                    'Examples: `s` (Kommunstyrelsen), `f` (Kommunfullmäktige), `rs` (Regionstyrelsen)\n\n'
+                    'See `GET /filters/` for all valid values.'
                 ),
                 type=openapi.TYPE_STRING,
                 enum=[choice[0] for choice in Organ.choices],
