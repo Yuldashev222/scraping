@@ -336,13 +336,6 @@ class SearchFilesView(ListAPIView):
             search_query = search_query.strip()
             # ---------------------
 
-            # all expression
-            a_search_query = search_query.replace('"', '').strip().split()
-            if len(a_search_query) > 1:
-                search = search.query(self.all_q_expression(' '.join(a_search_query[:-1])))
-            search = search.query(Q('wildcard', text=a_search_query[-1] + '*'))
-            # -------------
-
             # required text expression
             required_pattern = r'".*?"'
             required_text_list = re.findall(required_pattern, search_query)
@@ -351,6 +344,14 @@ class SearchFilesView(ListAPIView):
                     search = search.query(self.exact_q_expression(required_text.replace('"', '')))
                     search_query = search_query.replace(required_text, '')
             # ----------------
+
+            # all expression
+            a_search_query = search_query.strip().split()
+            if a_search_query:
+                if len(a_search_query) > 1:
+                    search = search.query(self.all_q_expression(' '.join(a_search_query[:-1])))
+                search = search.query(Q('wildcard', text=a_search_query[-1] + '*'))
+            # -------------
 
             search = search.highlight('text', fragment_size=130, pre_tags='<mark>', post_tags='</mark>',
                                       max_analyzed_offset=500000)
