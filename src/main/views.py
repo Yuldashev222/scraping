@@ -322,6 +322,8 @@ class SearchFilesView(ListAPIView):
             else:
                 raise ValidationError({'region': 'not found'})
 
+        CHAR_FILTER_MAP = {'§': '_sect_', '/': '_slash_', ':': '_colon_'}
+
         bol = bool(search_query)
         if bol:
             search_query = ' '.join(search_query.split()).lower()
@@ -331,7 +333,10 @@ class SearchFilesView(ListAPIView):
             for word in search_query.split()[::-1]:
                 if word[0] != '-':
                     break
-                search = search.query(self.ignore_q_expression(word[1:]))
+                ignore_word = word[1:]
+                for char, replacement in CHAR_FILTER_MAP.items():
+                    ignore_word = ignore_word.replace(char, replacement)
+                search = search.query(self.ignore_q_expression(ignore_word))
                 search_query = search_query.replace(word, '')
             search_query = search_query.strip()
             # ---------------------
@@ -350,7 +355,10 @@ class SearchFilesView(ListAPIView):
             if a_search_query:
                 if len(a_search_query) > 1:
                     search = search.query(self.all_q_expression(' '.join(a_search_query[:-1])))
-                search = search.query(Q('wildcard', text=a_search_query[-1] + '*'))
+                wild_word = a_search_query[-1]
+                for char, replacement in CHAR_FILTER_MAP.items():
+                    wild_word = wild_word.replace(char, replacement)
+                search = search.query(Q('wildcard', text=wild_word + '*'))
             # -------------
 
             search = search.highlight('text', fragment_size=130, pre_tags='<mark>', post_tags='</mark>',
