@@ -13,6 +13,7 @@ class Organ(TextChoices):
     S = "s", "kommunstyrelsen"
     F = "f", "kommunfullmäktige"
     HALSO = 'halso', "Hälso- och sjukvårdsnämnden"
+    HALSO2 = 'halso2', "Hälso- och sjukvårdsnämnden 2"
     KOLLEK = 'kollek', "Kollektivtrafiknämnden"
     REGLA = 'regla', "Regionala utvecklingsnämnden"
     RS = 'rs', 'Regionstyrelsen'
