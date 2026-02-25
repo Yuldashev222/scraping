@@ -7,18 +7,20 @@ import main.services
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('main', '0002_ignoretext_from_filename'),
+        ("main", "0002_ignoretext_from_filename"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='filedetail',
-            name='file',
-            field=models.FileField(max_length=500, upload_to=main.services.file_upload_location),
+            model_name="filedetail",
+            name="file",
+            field=models.FileField(
+                max_length=500, upload_to=main.services.file_upload_location
+            ),
         ),
         migrations.AlterField(
-            model_name='filedetail',
-            name='source_file_link',
+            model_name="filedetail",
+            name="source_file_link",
             field=models.URLField(blank=True, max_length=400, null=True),
         ),
     ]

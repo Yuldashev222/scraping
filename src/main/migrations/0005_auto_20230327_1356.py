@@ -6,22 +6,22 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('main', '0004_alter_filedetail_file'),
+        ("main", "0004_alter_filedetail_file"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='searchdetail',
-            name='user',
+            model_name="searchdetail",
+            name="user",
         ),
         migrations.AddField(
-            model_name='searchdetail',
-            name='ipaddress',
+            model_name="searchdetail",
+            name="ipaddress",
             field=models.CharField(blank=True, max_length=50),
         ),
         migrations.AlterField(
-            model_name='searchdetail',
-            name='text',
+            model_name="searchdetail",
+            name="text",
             field=models.CharField(max_length=600),
         ),
     ]

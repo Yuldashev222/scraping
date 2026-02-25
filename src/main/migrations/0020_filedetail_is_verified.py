@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('main', '0019_inform_last_pdf'),
+        ("main", "0019_inform_last_pdf"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='filedetail',
-            name='is_verified',
+            model_name="filedetail",
+            name="is_verified",
             field=models.BooleanField(default=True),
         ),
     ]

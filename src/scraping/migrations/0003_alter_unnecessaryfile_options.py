@@ -6,12 +6,12 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('scraping', '0002_unnecessaryfile'),
+        ("scraping", "0002_unnecessaryfile"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='unnecessaryfile',
-            options={'ordering': ['-id']},
+            name="unnecessaryfile",
+            options={"ordering": ["-id"]},
         ),
     ]

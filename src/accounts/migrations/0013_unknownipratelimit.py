@@ -7,19 +7,34 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('accounts', '0012_auto_20260208_1857'),
+        ("accounts", "0012_auto_20260208_1857"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='UnknownIpRateLimit',
+            name="UnknownIpRateLimit",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('rate_limit_per_minute', models.PositiveSmallIntegerField(default=10, help_text='How many requests per minute for unknown IPs?', validators=[django.core.validators.MinValueValidator(1)])),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "rate_limit_per_minute",
+                    models.PositiveSmallIntegerField(
+                        default=10,
+                        help_text="How many requests per minute for unknown IPs?",
+                        validators=[django.core.validators.MinValueValidator(1)],
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Unknown IP Rate Limit',
-                'verbose_name_plural': 'Unknown IP Rate Limit',
+                "verbose_name": "Unknown IP Rate Limit",
+                "verbose_name_plural": "Unknown IP Rate Limit",
             },
         ),
     ]

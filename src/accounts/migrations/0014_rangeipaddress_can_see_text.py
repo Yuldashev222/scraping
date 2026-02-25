@@ -6,13 +6,15 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('accounts', '0013_unknownipratelimit'),
+        ("accounts", "0013_unknownipratelimit"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='rangeipaddress',
-            name='can_see_text',
-            field=models.BooleanField(default=False, help_text='Can this IP range see the full text of files?'),
+            model_name="rangeipaddress",
+            name="can_see_text",
+            field=models.BooleanField(
+                default=False, help_text="Can this IP range see the full text of files?"
+            ),
         ),
     ]

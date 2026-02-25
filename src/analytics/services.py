@@ -1,9 +1,14 @@
 import os
 from django.conf import settings
 from google.analytics.data_v1beta import BetaAnalyticsDataClient
-from google.analytics.data_v1beta.types import DateRange, Dimension, Metric, RunReportRequest
+from google.analytics.data_v1beta.types import (
+    DateRange,
+    Dimension,
+    Metric,
+    RunReportRequest,
+)
 
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = settings.GOOGLE_APPLICATION_CREDENTIALS
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = settings.GOOGLE_APPLICATION_CREDENTIALS
 
 
 # browser
@@ -19,6 +24,7 @@ os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = settings.GOOGLE_APPLICATION_CREDE
 # fullPageUrl
 # averageSessionDuration
 # engagedSessions
+
 
 class GoogleAnalytics:
     property_id = settings.PROPERTY_ID
@@ -47,8 +53,12 @@ class GoogleAnalytics:
 
         request = RunReportRequest(
             property=ga_property,
-            metrics=[Metric(name="activeUsers"), Metric(name="sessions"), Metric(name="averageSessionDuration")],
-            date_ranges=[date_obj]
+            metrics=[
+                Metric(name="activeUsers"),
+                Metric(name="sessions"),
+                Metric(name="averageSessionDuration"),
+            ],
+            date_ranges=[date_obj],
         )
 
         response = client.run_report(request)
@@ -78,15 +88,15 @@ class GoogleAnalytics:
             property=ga_property,
             dimensions=[Dimension(name="country"), Dimension(name="city")],
             metrics=[Metric(name="activeUsers")],
-            date_ranges=[date_obj]
+            date_ranges=[date_obj],
         )
         response = client.run_report(request)
 
         for row in response.rows:
             obj = {
-                'country': row.dimension_values[0].value,
-                'city': row.dimension_values[1].value,
-                'visitors': row.metric_values[0].value
+                "country": row.dimension_values[0].value,
+                "city": row.dimension_values[1].value,
+                "visitors": row.metric_values[0].value,
             }
             city_report.append(obj)
 
@@ -97,16 +107,21 @@ class GoogleAnalytics:
         page_report = []
         client = BetaAnalyticsDataClient()
 
-        request = RunReportRequest(property=cls.get_property(),
-                                   date_ranges=[cls.get_date_obj(start_date, end_date)],
-                                   dimensions=[Dimension(name="pagePath")],
-                                   metrics=[Metric(name="screenPageViews"), Metric(name="averageSessionDuration")])
+        request = RunReportRequest(
+            property=cls.get_property(),
+            date_ranges=[cls.get_date_obj(start_date, end_date)],
+            dimensions=[Dimension(name="pagePath")],
+            metrics=[
+                Metric(name="screenPageViews"),
+                Metric(name="averageSessionDuration"),
+            ],
+        )
         response = client.run_report(request=request)
         for row in response.rows:
             obj = {
-                'page_path': row.dimension_values[0].value,
-                'visitors': row.metric_values[0].value,
-                'avg_engagement_time': int(float(row.metric_values[1].value))
+                "page_path": row.dimension_values[0].value,
+                "visitors": row.metric_values[0].value,
+                "avg_engagement_time": int(float(row.metric_values[1].value)),
             }
             page_report.append(obj)
 
@@ -120,16 +135,19 @@ class GoogleAnalytics:
         request = RunReportRequest(
             property=cls.get_property(),
             date_ranges=[cls.get_date_obj(start_date, end_date)],
-            dimensions=[Dimension(name="deviceCategory"), Dimension(name="mobileDeviceModel")],
-            metrics=[Metric(name="activeUsers")]
+            dimensions=[
+                Dimension(name="deviceCategory"),
+                Dimension(name="mobileDeviceModel"),
+            ],
+            metrics=[Metric(name="activeUsers")],
         )
         response = client.run_report(request=request)
 
         for row in response.rows:
             obj = {
-                'category': row.dimension_values[0].value,
-                'model': row.dimension_values[1].value,
-                'visitors': row.metric_values[0].value
+                "category": row.dimension_values[0].value,
+                "model": row.dimension_values[1].value,
+                "visitors": row.metric_values[0].value,
             }
             device_report.append(obj)
         return device_report
@@ -143,15 +161,15 @@ class GoogleAnalytics:
             property=cls.get_property(),
             date_ranges=[cls.get_date_obj(start_date, end_date)],
             dimensions=[Dimension(name="sessionDefaultChannelGrouping")],
-            metrics=[Metric(name="sessions")]
+            metrics=[Metric(name="sessions")],
         )
 
         response = client.run_report(request=request)
 
         for row in response.rows:
             obj = {
-                'channel': row.dimension_values[0].value,
-                'visitors': row.metric_values[0].value,
+                "channel": row.dimension_values[0].value,
+                "visitors": row.metric_values[0].value,
             }
             channel_report.append(obj)
         return channel_report

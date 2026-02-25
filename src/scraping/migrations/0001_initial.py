@@ -7,19 +7,26 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Scraping',
+            name="Scraping",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('play', models.BooleanField(default=False)),
-                ('pause_inform_id', models.PositiveIntegerField(default=0)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("play", models.BooleanField(default=False)),
+                ("pause_inform_id", models.PositiveIntegerField(default=0)),
             ],
             options={
-                'verbose_name_plural': 'Start/Stop',
+                "verbose_name_plural": "Start/Stop",
             },
         ),
     ]

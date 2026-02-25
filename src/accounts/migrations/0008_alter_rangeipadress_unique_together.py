@@ -6,12 +6,12 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('accounts', '0007_alter_rangeipadress_date_created'),
+        ("accounts", "0007_alter_rangeipadress_date_created"),
     ]
 
     operations = [
         migrations.AlterUniqueTogether(
-            name='rangeipadress',
-            unique_together={('first_part_ipaddress', 'start', 'end')},
+            name="rangeipadress",
+            unique_together={("first_part_ipaddress", "start", "end")},
         ),
     ]

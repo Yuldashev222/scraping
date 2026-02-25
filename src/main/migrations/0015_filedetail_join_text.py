@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('main', '0014_filedetail_first_page_text'),
+        ("main", "0014_filedetail_first_page_text"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='filedetail',
-            name='join_text',
+            model_name="filedetail",
+            name="join_text",
             field=models.TextField(blank=True),
         ),
     ]

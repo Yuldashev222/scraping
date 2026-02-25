@@ -6,18 +6,42 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('main', '0023_auto_20260205_1952'),
+        ("main", "0023_auto_20260205_1952"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='filedetail',
-            name='organ',
-            field=models.CharField(choices=[('s', 'kommunstyrelsen'), ('f', 'kommunfullmäktige'), ('halso', 'Hälso- och sjukvårdsnämnden'), ('kollek', 'Kollektivtrafiknämnden'), ('regla', 'Regionala utvecklingsnämnden'), ('rs', 'Regionstyrelsen'), ('rf', 'Regionfullmäktige')], max_length=10),
+            model_name="filedetail",
+            name="organ",
+            field=models.CharField(
+                choices=[
+                    ("s", "kommunstyrelsen"),
+                    ("f", "kommunfullmäktige"),
+                    ("halso", "Hälso- och sjukvårdsnämnden"),
+                    ("kollek", "Kollektivtrafiknämnden"),
+                    ("regla", "Regionala utvecklingsnämnden"),
+                    ("rs", "Regionstyrelsen"),
+                    ("rf", "Regionfullmäktige"),
+                ],
+                max_length=10,
+            ),
         ),
         migrations.AlterField(
-            model_name='inform',
-            name='organ',
-            field=models.CharField(blank=True, choices=[('s', 'kommunstyrelsen'), ('f', 'kommunfullmäktige'), ('halso', 'Hälso- och sjukvårdsnämnden'), ('kollek', 'Kollektivtrafiknämnden'), ('regla', 'Regionala utvecklingsnämnden'), ('rs', 'Regionstyrelsen'), ('rf', 'Regionfullmäktige')], max_length=10, null=True),
+            model_name="inform",
+            name="organ",
+            field=models.CharField(
+                blank=True,
+                choices=[
+                    ("s", "kommunstyrelsen"),
+                    ("f", "kommunfullmäktige"),
+                    ("halso", "Hälso- och sjukvårdsnämnden"),
+                    ("kollek", "Kollektivtrafiknämnden"),
+                    ("regla", "Regionala utvecklingsnämnden"),
+                    ("rs", "Regionstyrelsen"),
+                    ("rf", "Regionfullmäktige"),
+                ],
+                max_length=10,
+                null=True,
+            ),
         ),
     ]

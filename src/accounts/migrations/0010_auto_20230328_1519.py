@@ -6,17 +6,17 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('accounts', '0009_auto_20230327_1356'),
+        ("accounts", "0009_auto_20230327_1356"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='rangeipaddress',
-            name='region',
+            model_name="rangeipaddress",
+            name="region",
         ),
         migrations.AddField(
-            model_name='rangeipaddress',
-            name='owner',
-            field=models.CharField(blank=True, max_length=400, verbose_name='for whom'),
+            model_name="rangeipaddress",
+            name="owner",
+            field=models.CharField(blank=True, max_length=400, verbose_name="for whom"),
         ),
     ]

@@ -7,18 +7,22 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('accounts', '0002_auto_20230325_0704'),
+        ("accounts", "0002_auto_20230325_0704"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='rangeipadress',
-            name='end',
-            field=models.PositiveSmallIntegerField(validators=[django.core.validators.MaxValueValidator(255)]),
+            model_name="rangeipadress",
+            name="end",
+            field=models.PositiveSmallIntegerField(
+                validators=[django.core.validators.MaxValueValidator(255)]
+            ),
         ),
         migrations.AlterField(
-            model_name='rangeipadress',
-            name='start',
-            field=models.PositiveSmallIntegerField(validators=[django.core.validators.MaxValueValidator(255)]),
+            model_name="rangeipadress",
+            name="start",
+            field=models.PositiveSmallIntegerField(
+                validators=[django.core.validators.MaxValueValidator(255)]
+            ),
         ),
     ]

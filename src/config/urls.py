@@ -7,11 +7,16 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
-from main.views import SearchFilesView, FileDetailCreateAPIView, FileDetailUpdateAPIView, FiltersView
+from main.views import (
+    SearchFilesView,
+    FileDetailCreateAPIView,
+    FileDetailUpdateAPIView,
+    FiltersView,
+)
 
 swagger_info = openapi.Info(
     title="Offentligabeslut API",
-    default_version='v1',
+    default_version="v1",
     description=(
         "API for searching Swedish municipal documents (protokoll).\n\n"
         "## Authentication\n"
@@ -22,7 +27,7 @@ swagger_info = openapi.Info(
         "you will receive a `429 Too Many Requests` response.\n\n"
         "## Search Syntax\n"
         "- **Basic search**: `budget 2024` — finds documents containing all words\n"
-        "- **Exact phrase**: `\"kommunstyrelsen protokoll\"` — matches the exact phrase\n"
+        '- **Exact phrase**: `"kommunstyrelsen protokoll"` — matches the exact phrase\n'
         "- **Exclude words**: `budget -skola` — excludes documents containing 'skola'\n"
         "- Combine all of the above in one query"
     ),
@@ -34,20 +39,26 @@ schema_view = get_schema_view(
     public=True,
     permission_classes=(permissions.AllowAny,),
     patterns=[
-        path('files/', SearchFilesView.as_view()),
-        path('filters/', FiltersView.as_view()),
+        path("files/", SearchFilesView.as_view()),
+        path("filters/", FiltersView.as_view()),
     ],
 )
 
 urlpatterns = [
-    path('login/', TokenObtainPairView.as_view()),
-    path('files/', SearchFilesView.as_view()),
-    path('filters/', FiltersView.as_view()),
+    path("login/", TokenObtainPairView.as_view()),
+    path("files/", SearchFilesView.as_view()),
+    path("filters/", FiltersView.as_view()),
     # path('files/create/', FileDetailCreateAPIView.as_view()),
     # path('files/update/<int:pk>/', FileDetailUpdateAPIView.as_view()),
-    path('admin/', admin.site.urls),
-    re_path(r'^swagger/$', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-    re_path(r'^redoc/$', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    path("admin/", admin.site.urls),
+    re_path(
+        r"^swagger/$",
+        schema_view.with_ui("swagger", cache_timeout=0),
+        name="schema-swagger-ui",
+    ),
+    re_path(
+        r"^redoc/$", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"
+    ),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

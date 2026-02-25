@@ -7,21 +7,50 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('accounts', '0001_initial'),
+        ("accounts", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='RangeIpAdress',
+            name="RangeIpAdress",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('first_part_ip_address', models.CharField(max_length=11, validators=[django.core.validators.RegexValidator(message='The IP address must be minimum 5 characters, maximum 11 characters. for example: 123.123.123', regex='^\\d{1,3}[.]\\d{1,3}[.]\\d{1,3}$')])),
-                ('start', models.PositiveSmallIntegerField(verbose_name=django.core.validators.MaxValueValidator(255))),
-                ('end', models.PositiveSmallIntegerField(verbose_name=django.core.validators.MaxValueValidator(255))),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "first_part_ip_address",
+                    models.CharField(
+                        max_length=11,
+                        validators=[
+                            django.core.validators.RegexValidator(
+                                message="The IP address must be minimum 5 characters, maximum 11 characters. for example: 123.123.123",
+                                regex="^\\d{1,3}[.]\\d{1,3}[.]\\d{1,3}$",
+                            )
+                        ],
+                    ),
+                ),
+                (
+                    "start",
+                    models.PositiveSmallIntegerField(
+                        verbose_name=django.core.validators.MaxValueValidator(255)
+                    ),
+                ),
+                (
+                    "end",
+                    models.PositiveSmallIntegerField(
+                        verbose_name=django.core.validators.MaxValueValidator(255)
+                    ),
+                ),
             ],
         ),
         migrations.RemoveField(
-            model_name='customuser',
-            name='ipaddress',
+            model_name="customuser",
+            name="ipaddress",
         ),
     ]

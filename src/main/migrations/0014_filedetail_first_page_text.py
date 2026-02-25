@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('main', '0013_auto_20230726_0918'),
+        ("main", "0013_auto_20230726_0918"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='filedetail',
-            name='first_page_text',
+            model_name="filedetail",
+            name="first_page_text",
             field=models.TextField(blank=True),
         ),
     ]

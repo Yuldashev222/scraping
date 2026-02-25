@@ -6,16 +6,16 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('accounts', '0008_alter_rangeipadress_unique_together'),
+        ("accounts", "0008_alter_rangeipadress_unique_together"),
     ]
 
     operations = [
         migrations.RenameModel(
-            old_name='RangeIpAdress',
-            new_name='RangeIpAddress',
+            old_name="RangeIpAdress",
+            new_name="RangeIpAddress",
         ),
         migrations.AlterModelOptions(
-            name='rangeipaddress',
-            options={'verbose_name_plural': 'Range Ip Addresses'},
+            name="rangeipaddress",
+            options={"verbose_name_plural": "Range Ip Addresses"},
         ),
     ]

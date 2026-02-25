@@ -26,7 +26,7 @@ class IpRangeThrottle(BaseThrottle):
             return True
 
         limit = rate_limit_obj.rate_limit_per_minute
-        cache_key = f'unknown_ip_{ip}'
+        cache_key = f"unknown_ip_{ip}"
         requests_count = cache.get(cache_key, 0)
 
         if requests_count >= limit:
@@ -51,7 +51,10 @@ class IpRangeThrottle(BaseThrottle):
         with transaction.atomic():
             range_ip = type(range_ip).objects.select_for_update().get(pk=range_ip.pk)
 
-            if range_ip.month_started is None or now - range_ip.month_started >= timedelta(days=MONTH_DAYS):
+            if (
+                range_ip.month_started is None
+                or now - range_ip.month_started >= timedelta(days=MONTH_DAYS)
+            ):
                 range_ip.month_started = now
                 range_ip.month_requests = 0
 
@@ -63,7 +66,7 @@ class IpRangeThrottle(BaseThrottle):
                 days_left = MONTH_DAYS - (now - range_ip.month_started).days
                 raise Throttled(
                     wait=days_left * 86400,
-                    detail=f'Monthly limit exceeded. Resets in {days_left} days.'
+                    detail=f"Monthly limit exceeded. Resets in {days_left} days.",
                 )
 
             if range_ip.minute_requests >= range_ip.rate_limit_per_minute:

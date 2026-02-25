@@ -7,13 +7,22 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('accounts', '0003_auto_20230325_0714'),
+        ("accounts", "0003_auto_20230325_0714"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='rangeipadress',
-            name='first_part_ip_address',
-            field=models.CharField(help_text='Example: 123.123.123', max_length=11, validators=[django.core.validators.RegexValidator(message='The IP address must be minimum 5 characters, maximum 11 characters. for example: 123.123.123', regex='^\\d{1,3}[.]\\d{1,3}[.]\\d{1,3}$')]),
+            model_name="rangeipadress",
+            name="first_part_ip_address",
+            field=models.CharField(
+                help_text="Example: 123.123.123",
+                max_length=11,
+                validators=[
+                    django.core.validators.RegexValidator(
+                        message="The IP address must be minimum 5 characters, maximum 11 characters. for example: 123.123.123",
+                        regex="^\\d{1,3}[.]\\d{1,3}[.]\\d{1,3}$",
+                    )
+                ],
+            ),
         ),
     ]

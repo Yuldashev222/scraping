@@ -10,45 +10,51 @@ from .validators import first_part_validate_ipaddress
 
 
 class RangeIpAddress(models.Model):
-    owner = models.CharField(verbose_name='för vem', max_length=400, blank=True)
+    owner = models.CharField(verbose_name="för vem", max_length=400, blank=True)
     first_part_ipaddress = models.CharField(
-        max_length=11, validators=[first_part_validate_ipaddress], help_text='Example: 123.123.123'
+        max_length=11,
+        validators=[first_part_validate_ipaddress],
+        help_text="Example: 123.123.123",
     )
     start = models.PositiveSmallIntegerField(validators=[MaxValueValidator(255)])
     end = models.PositiveSmallIntegerField(validators=[MaxValueValidator(255)])
-    date_created = models.DateTimeField('date added', auto_now_add=True)
+    date_created = models.DateTimeField("date added", auto_now_add=True)
 
     is_active = models.BooleanField(default=True)
     rate_limit_per_minute = models.PositiveSmallIntegerField(
         verbose_name="Rate limit per minute",
-        help_text='How many times per minute can a client send requests?',
+        help_text="How many times per minute can a client send requests?",
         validators=[MinValueValidator(1)],
     )
     rate_limit_per_month = models.PositiveBigIntegerField(
         verbose_name="Rate limit per month",
-        help_text='How many times per month can a client send requests?',
-        validators=[MinValueValidator(1)]
+        help_text="How many times per month can a client send requests?",
+        validators=[MinValueValidator(1)],
     )
     minute_requests = models.PositiveIntegerField(default=0)
     current_minute = models.DateTimeField(null=True, blank=True)
     month_requests = models.PositiveBigIntegerField(default=0)
     month_started = models.DateTimeField(null=True, blank=True)
-    can_see_text = models.BooleanField(default=False, help_text='Can this IP range see the full text of files?')
+    can_see_text = models.BooleanField(
+        default=False, help_text="Can this IP range see the full text of files?"
+    )
 
     class Meta:
-        unique_together = ['first_part_ipaddress', 'start', 'end']
-        verbose_name_plural = 'Range Ip Addresses'
+        unique_together = ["first_part_ipaddress", "start", "end"]
+        verbose_name_plural = "Range Ip Addresses"
 
     def clean(self):
         if self.start and self.end and self.start > self.end:
-            raise ValidationError({'start': f'must be less than {self.end}'})
+            raise ValidationError({"start": f"must be less than {self.end}"})
         if self.rate_limit_per_month < self.rate_limit_per_minute:
             raise ValidationError(
-                {"rate_limit_per_minute": "Rate limit per minute must be less than per month"}
+                {
+                    "rate_limit_per_minute": "Rate limit per minute must be less than per month"
+                }
             )
 
     def __str__(self):
-        return f'{self.first_part_ipaddress}: [{self.start}, {self.end}]'
+        return f"{self.first_part_ipaddress}: [{self.start}, {self.end}]"
 
 
 class CustomUserManager(UserManager):
@@ -91,12 +97,14 @@ class CustomUser(AbstractUser):
     email = models.EmailField(unique=True)
 
     objects = CustomUserManager()
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['first_name', 'last_name']
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ["first_name", "last_name"]
 
     @classmethod
     def default_client_user(cls):
-        user, created = cls.objects.get_or_create(email='default@client.com', first_name='fc', last_name='lc')
+        user, created = cls.objects.get_or_create(
+            email="default@client.com", first_name="fc", last_name="lc"
+        )
         if created:
             user.set_password(None)
         return user
@@ -106,24 +114,24 @@ class CustomUser(AbstractUser):
         super().save(*args, **kwargs)
 
     class Meta:
-        verbose_name = _('anställd')
-        verbose_name_plural = _('anställda')
+        verbose_name = _("anställd")
+        verbose_name_plural = _("anställda")
 
 
 class UnknownIpRateLimit(models.Model):
     rate_limit_per_minute = models.PositiveSmallIntegerField(
         default=10,
         validators=[MinValueValidator(1)],
-        help_text='How many requests per minute for unknown IPs?'
+        help_text="How many requests per minute for unknown IPs?",
     )
 
     class Meta:
-        verbose_name = 'Unknown IP Rate Limit'
-        verbose_name_plural = 'Unknown IP Rate Limit'
+        verbose_name = "Unknown IP Rate Limit"
+        verbose_name_plural = "Unknown IP Rate Limit"
 
     def clean(self):
         if not self.pk and UnknownIpRateLimit.objects.exists():
-            raise ValidationError('Only one entry allowed.')
+            raise ValidationError("Only one entry allowed.")
 
     def __str__(self):
-        return f'{self.rate_limit_per_minute} req/min'
+        return f"{self.rate_limit_per_minute} req/min"

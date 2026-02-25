@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('main', '0012_auto_20230419_1754'),
+        ("main", "0012_auto_20230419_1754"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='ignorefile',
-            name='link',
+            model_name="ignorefile",
+            name="link",
             field=models.URLField(max_length=500),
         ),
         migrations.AlterField(
-            model_name='ignorefile',
-            name='source_file_link',
+            model_name="ignorefile",
+            name="source_file_link",
             field=models.URLField(max_length=500),
         ),
     ]

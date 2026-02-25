@@ -18,7 +18,7 @@ class FileDetailDocumentSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     file = serializers.SerializerMethodField()
     logo = serializers.SerializerMethodField()
-    file_date = serializers.DateTimeField(format='%Y-%m-%d')
+    file_date = serializers.DateTimeField(format="%Y-%m-%d")
     country = serializers.SerializerMethodField()
     region = serializers.SerializerMethodField()
     organ = serializers.SerializerMethodField()
@@ -30,9 +30,9 @@ class FileDetailDocumentSerializer(serializers.Serializer):
             return "protokoll"
 
     def get_about_text(self, obj):
-        if self.context['bol']:
+        if self.context["bol"]:
             try:
-                return '<br>'.join(obj.meta.highlight.text)
+                return "<br>".join(obj.meta.highlight.text)
             except:
                 pass
         if obj.first_page_text:
@@ -47,27 +47,25 @@ class FileDetailDocumentSerializer(serializers.Serializer):
 
     def get_logo(self, obj):
         if obj.logo.logo:
-            request = self.context.get('request')
+            request = self.context.get("request")
             return request.build_absolute_uri(obj.logo.logo)
         return None
 
     def get_file(self, obj):
         if obj.file:
-            request = self.context.get('request')
+            request = self.context.get("request")
             return request.build_absolute_uri(obj.file)
         return None
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        request = self.context.get('request')
-        auth = getattr(request, 'auth', None)
-        if not auth or not getattr(auth, 'can_see_text', False):
-            data.pop('text', None)
+        request = self.context.get("request")
+        auth = getattr(request, "auth", None)
+        if not auth or not getattr(auth, "can_see_text", False):
+            data.pop("text", None)
         return data
 
 
 class FileDetailDocumentAuthSerializer(FileDetailDocumentSerializer):
     def get_file(self, obj):
         return None
-
-

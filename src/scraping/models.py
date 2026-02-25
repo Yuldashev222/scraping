@@ -9,19 +9,19 @@ class Scraping(models.Model):
     pause_inform_id = models.PositiveIntegerField(default=0)
 
     class Meta:
-        verbose_name_plural = 'Start/Stop'
+        verbose_name_plural = "Start/Stop"
 
     def clean(self):
         if (
-                self.pk and self.play and not Scraping.objects.get(pk=self.pk).play
-                and
-                (
-                        main_models.Inform.objects.filter(is_completed=False).exists()
-                        or
-                        main_models.ZipFileUpload.objects.filter(is_completed=False).exists()
-                )
+            self.pk
+            and self.play
+            and not Scraping.objects.get(pk=self.pk).play
+            and (
+                main_models.Inform.objects.filter(is_completed=False).exists()
+                or main_models.ZipFileUpload.objects.filter(is_completed=False).exists()
+            )
         ):
-            raise ValidationError('den sista länken är inte klar än')
+            raise ValidationError("den sista länken är inte klar än")
 
     def save(self, *args, **kwargs):
         if self.pk and self.play and not Scraping.objects.get(pk=self.pk).play:
@@ -30,8 +30,10 @@ class Scraping(models.Model):
 
 
 class UnnecessaryFile(models.Model):
-    inform = models.ForeignKey(verbose_name='länk', to='main.Inform', on_delete=models.CASCADE)
+    inform = models.ForeignKey(
+        verbose_name="länk", to="main.Inform", on_delete=models.CASCADE
+    )
     pdf_link = models.CharField(max_length=500)
 
     class Meta:
-        ordering = ['-id']
+        ordering = ["-id"]

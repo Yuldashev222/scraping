@@ -6,17 +6,17 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('accounts', '0004_alter_rangeipadress_first_part_ip_address'),
+        ("accounts", "0004_alter_rangeipadress_first_part_ip_address"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='customuser',
-            options={'verbose_name': 'anställd', 'verbose_name_plural': 'anställda'},
+            name="customuser",
+            options={"verbose_name": "anställd", "verbose_name_plural": "anställda"},
         ),
         migrations.RenameField(
-            model_name='rangeipadress',
-            old_name='first_part_ip_address',
-            new_name='first_part_ipaddress',
+            model_name="rangeipadress",
+            old_name="first_part_ip_address",
+            new_name="first_part_ipaddress",
         ),
     ]

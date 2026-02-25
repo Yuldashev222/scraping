@@ -6,12 +6,12 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('main', '0010_auto_20230417_1249'),
+        ("main", "0010_auto_20230417_1249"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='zipfileupload',
-            name='country',
+            model_name="zipfileupload",
+            name="country",
         ),
     ]

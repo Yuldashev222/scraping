@@ -1,5 +1,3 @@
-import time
-
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
@@ -12,26 +10,21 @@ from .services import file_upload_location, extract_zip_file
 
 class ZipFileUpload(models.Model):
     zip_file = models.FileField(
-        upload_to='zip_files/', validators=[FileExtensionValidator(allowed_extensions=['zip'])]
+        upload_to="zip_files/",
+        validators=[FileExtensionValidator(allowed_extensions=["zip"])],
     )
     pdfs_count = models.PositiveSmallIntegerField(blank=True, default=0)
-    is_completed = models.BooleanField(verbose_name='är klart', default=False)
+    is_completed = models.BooleanField(verbose_name="är klart", default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def clean(self):
         if (
-                (
-                        ZipFileUpload.objects.filter(is_completed=False).exists()
-                        and
-                        not self.pk
-                )
-                or
-                Inform.objects.filter(is_completed=False).exists()
-        ):
-            raise ValidationError('den sista länken är inte klar än')
+            ZipFileUpload.objects.filter(is_completed=False).exists() and not self.pk
+        ) or Inform.objects.filter(is_completed=False).exists():
+            raise ValidationError("den sista länken är inte klar än")
 
     def __str__(self):
-        return f'{self.created_at}'
+        return f"{self.created_at}"
 
     def save(self, *args, **kwargs):
         created = True if not self.pk else False
@@ -41,68 +34,82 @@ class ZipFileUpload(models.Model):
 
 
 class Logo(models.Model):
-    country = models.CharField(verbose_name='Län', max_length=3, choices=InformCountry.choices())
-    region = models.CharField(verbose_name='Komun', max_length=7, choices=InformRegion.choices(), unique=True)
-    logo = models.FileField(upload_to='logos/')
+    country = models.CharField(
+        verbose_name="Län", max_length=3, choices=InformCountry.choices()
+    )
+    region = models.CharField(
+        verbose_name="Komun", max_length=7, choices=InformRegion.choices(), unique=True
+    )
+    logo = models.FileField(upload_to="logos/")
 
     def __str__(self):
         return self.get_region_display()
 
     def clean(self):
         if self.country and self.region and self.region[:3] != self.country:
-            raise ValidationError({'region': 'country has no such region.'})
+            raise ValidationError({"region": "country has no such region."})
 
 
 class Inform(models.Model):
-    country = models.CharField(verbose_name='Län', max_length=3, choices=InformCountry.choices())
-    region = models.CharField(verbose_name='Komun', max_length=7, choices=InformRegion.choices())
-    organ = models.CharField(max_length=10, choices=Organ.choices, blank=True, null=True)
+    country = models.CharField(
+        verbose_name="Län", max_length=3, choices=InformCountry.choices()
+    )
+    region = models.CharField(
+        verbose_name="Komun", max_length=7, choices=InformRegion.choices()
+    )
+    organ = models.CharField(
+        max_length=10, choices=Organ.choices, blank=True, null=True
+    )
     link = models.URLField(max_length=400, unique=True, validators=[validate_link])
     desc = models.CharField(max_length=500, blank=True)
     pdfs_count = models.PositiveSmallIntegerField(default=0)
-    date_created = models.DateTimeField('date added', auto_now_add=True)
-    is_completed = models.BooleanField(verbose_name='är klart', default=False)
+    date_created = models.DateTimeField("date added", auto_now_add=True)
+    is_completed = models.BooleanField(verbose_name="är klart", default=False)
     new_pdfs = models.BooleanField(default=True)
     last_pdf = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
-        return f'{self.pk}: {self.link}'
+        return f"{self.pk}: {self.link}"
 
     class Meta:
-        verbose_name = 'länk'
-        verbose_name_plural = 'länkar'
+        verbose_name = "länk"
+        verbose_name_plural = "länkar"
 
     def clean(self):
         if (
-                (
-                        Inform.objects.exclude(pk=self.pk).filter(is_completed=False).exists()  # last
-                        and
-                        (
-                                not self.pk
-                                or
-                                self.pk and self.link != Inform.objects.get(pk=self.pk).link
-                        )
-                )
-                or
-                ZipFileUpload.objects.filter(is_completed=False).exists()
-        ):
-            raise ValidationError('den sista länken är inte klar än')
+            Inform.objects.exclude(pk=self.pk)
+            .filter(is_completed=False)
+            .exists()  # last
+            and (
+                not self.pk
+                or self.pk
+                and self.link != Inform.objects.get(pk=self.pk).link
+            )
+        ) or ZipFileUpload.objects.filter(is_completed=False).exists():
+            raise ValidationError("den sista länken är inte klar än")
 
         if self.country and self.region and self.region[:3] != self.country:
-            raise ValidationError({'region': 'country has no such region.'})
+            raise ValidationError({"region": "country has no such region."})
 
         if not Logo.objects.filter(region=self.region).exists():
-            raise ValidationError(f'{self.get_region_display()} Logo Not found')
+            raise ValidationError(f"{self.get_region_display()} Logo Not found")
 
 
 class FileDetail(models.Model):
-    mode = models.CharField(max_length=10, choices=FileMode.choices, default=FileMode.KOMMUN)
-    country = models.CharField(verbose_name='Län', max_length=3, choices=InformCountry.choices())
-    region = models.CharField(verbose_name='Komun', max_length=7, choices=InformRegion.choices())
+    mode = models.CharField(
+        max_length=10, choices=FileMode.choices, default=FileMode.KOMMUN
+    )
+    country = models.CharField(
+        verbose_name="Län", max_length=3, choices=InformCountry.choices()
+    )
+    region = models.CharField(
+        verbose_name="Komun", max_length=7, choices=InformRegion.choices()
+    )
     organ = models.CharField(max_length=10, choices=Organ.choices)
     file = models.FileField(
-        upload_to=file_upload_location, max_length=500,
-        validators=[FileExtensionValidator(allowed_extensions=['pdf'])]
+        upload_to=file_upload_location,
+        max_length=500,
+        validators=[FileExtensionValidator(allowed_extensions=["pdf"])],
     )
     text = models.TextField(blank=True)
     first_page_text = models.TextField(blank=True)
@@ -110,35 +117,45 @@ class FileDetail(models.Model):
     size = models.FloatField(blank=True, null=True)
     source_file_link = models.URLField(blank=True, null=True, max_length=400)
     file_date = models.DateField(null=True, blank=True)
-    is_scanned = models.BooleanField(verbose_name='skannade', default=False)
+    is_scanned = models.BooleanField(verbose_name="skannade", default=False)
     is_active = models.BooleanField(default=False)
     is_verified = models.BooleanField(default=True)
-    inform = models.ForeignKey(Inform, verbose_name='LÄNK ID', on_delete=models.CASCADE, blank=True, null=True)
-    zip_file = models.ForeignKey(
-        ZipFileUpload, verbose_name='Zip File', on_delete=models.CASCADE, blank=True, null=True
+    inform = models.ForeignKey(
+        Inform, verbose_name="LÄNK ID", on_delete=models.CASCADE, blank=True, null=True
     )
-    logo = models.ForeignKey(Logo, verbose_name='Logotype', on_delete=models.SET_NULL, null=True)
+    zip_file = models.ForeignKey(
+        ZipFileUpload,
+        verbose_name="Zip File",
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+    )
+    logo = models.ForeignKey(
+        Logo, verbose_name="Logotype", on_delete=models.SET_NULL, null=True
+    )
 
     def __str__(self):
         return str(self.file)
 
     def clean(self):
         if self.country and self.region and self.region[:3] != self.country:
-            raise ValidationError({'region': 'country has no such region.'})
+            raise ValidationError({"region": "country has no such region."})
 
-#        if not self.pk and FileDetail.objects.filter(pages__isnull=True).exists():
- #           raise ValidationError('last file process extract text')
+    #        if not self.pk and FileDetail.objects.filter(pages__isnull=True).exists():
+    #           raise ValidationError('last file process extract text')
 
     class Meta:
-        verbose_name = 'fil'
-        verbose_name_plural = 'filer'
+        verbose_name = "fil"
+        verbose_name_plural = "filer"
 
 
 class SearchDetail(models.Model):
     text = models.CharField(max_length=600)
-    result_files_cnt = models.PositiveIntegerField(verbose_name='antal filer hittade')
-    date_created = models.DateTimeField(auto_now_add=True, verbose_name='datum sökt efter')
-    ipaddress = models.CharField(verbose_name='Client IP', blank=True, max_length=50)
+    result_files_cnt = models.PositiveIntegerField(verbose_name="antal filer hittade")
+    date_created = models.DateTimeField(
+        auto_now_add=True, verbose_name="datum sökt efter"
+    )
+    ipaddress = models.CharField(verbose_name="Client IP", blank=True, max_length=50)
 
     def __str__(self):
         return self.text[:30]
@@ -154,12 +171,12 @@ class IgnoreFile(models.Model):
 
 
 class IgnoreText(models.Model):
-    text = models.CharField(help_text=_('word in filename'), max_length=255)
+    text = models.CharField(help_text=_("word in filename"), max_length=255)
     from_filename = models.BooleanField(default=True)
 
     def __str__(self):
         return self.text
 
     def save(self, *args, **kwargs):
-        self.text = ' '.join(self.text.split()).strip().lower()
+        self.text = " ".join(self.text.split()).strip().lower()
         super().save(*args, **kwargs)

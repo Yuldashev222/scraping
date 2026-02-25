@@ -8,13 +8,21 @@ import main.services
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('main', '0003_auto_20230318_1122'),
+        ("main", "0003_auto_20230318_1122"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='filedetail',
-            name='file',
-            field=models.FileField(max_length=500, upload_to=main.services.file_upload_location, validators=[django.core.validators.FileExtensionValidator(allowed_extensions=['pdf'])]),
+            model_name="filedetail",
+            name="file",
+            field=models.FileField(
+                max_length=500,
+                upload_to=main.services.file_upload_location,
+                validators=[
+                    django.core.validators.FileExtensionValidator(
+                        allowed_extensions=["pdf"]
+                    )
+                ],
+            ),
         ),
     ]

@@ -5,10 +5,10 @@ class VisitorAnalytics(models.Model):
     range_date = models.DateField(null=True)
 
     def __str__(self):
-        return 'changeme'
+        return "changeme"
 
     class Meta:
-        verbose_name_plural = ' VisitorAnalytics'
+        verbose_name_plural = " VisitorAnalytics"
 
 
 class CitiesAnalytics(models.Model):
@@ -18,7 +18,7 @@ class CitiesAnalytics(models.Model):
     range_date = models.DateField(null=True)
 
     class Meta:
-        verbose_name_plural = ' CitiesAnalytics'
+        verbose_name_plural = " CitiesAnalytics"
 
 
 class PagesAnalytics(models.Model):
@@ -28,7 +28,7 @@ class PagesAnalytics(models.Model):
     range_date = models.DateField(null=True)
 
     class Meta:
-        verbose_name_plural = ' PagesAnalytics'
+        verbose_name_plural = " PagesAnalytics"
 
 
 class DeviceAnalytics(models.Model):
@@ -38,7 +38,7 @@ class DeviceAnalytics(models.Model):
     range_date = models.DateField(null=True)
 
     class Meta:
-        verbose_name_plural = ' DeviceAnalytics'
+        verbose_name_plural = " DeviceAnalytics"
 
 
 class ChannelAnalytics(models.Model):
@@ -47,4 +47,4 @@ class ChannelAnalytics(models.Model):
     range_date = models.DateField(null=True)
 
     class Meta:
-        verbose_name_plural = ' ChannelAnalytics'
+        verbose_name_plural = " ChannelAnalytics"

@@ -6,12 +6,12 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('main', '0015_filedetail_join_text'),
+        ("main", "0015_filedetail_join_text"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='filedetail',
-            name='join_text',
+            model_name="filedetail",
+            name="join_text",
         ),
     ]

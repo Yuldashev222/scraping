@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('main', '0006_alter_searchdetail_ipaddress'),
+        ("main", "0006_alter_searchdetail_ipaddress"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='inform',
-            name='pdf_counts',
+            model_name="inform",
+            name="pdf_counts",
             field=models.PositiveSmallIntegerField(default=0),
         ),
     ]

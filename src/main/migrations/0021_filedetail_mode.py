@@ -6,13 +6,15 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('main', '0020_filedetail_is_verified'),
+        ("main", "0020_filedetail_is_verified"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='filedetail',
-            name='mode',
-            field=models.CharField(choices=[('k', 'Kommun'), ('r', 'Region')], default='k', max_length=10),
+            model_name="filedetail",
+            name="mode",
+            field=models.CharField(
+                choices=[("k", "Kommun"), ("r", "Region")], default="k", max_length=10
+            ),
         ),
     ]

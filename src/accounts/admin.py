@@ -4,19 +4,23 @@ from django.contrib.auth.models import Group
 from .models import CustomUser, RangeIpAddress, UnknownIpRateLimit
 
 admin.site.unregister(Group)
-admin.site.site_header = 'Offentligabeslut site admin'
+admin.site.site_header = "Offentligabeslut site admin"
 
 
 @admin.register(RangeIpAddress)
 class RangeIpAddressAdmin(admin.ModelAdmin):
-    list_display = ('owner', 'first_part_ipaddress', 'is_active', 'can_see_text',
-                    'rate_limit_per_minute',
-                    'rate_limit_per_month',
-                    'month_requests',
-                    'month_started',
-                    )
+    list_display = (
+        "owner",
+        "first_part_ipaddress",
+        "is_active",
+        "can_see_text",
+        "rate_limit_per_minute",
+        "rate_limit_per_month",
+        "month_requests",
+        "month_started",
+    )
     list_display_links = list_display
-    search_fields = ('owner',)
+    search_fields = ("owner",)
     readonly_fields = (
         "minute_requests",
         "month_requests",
@@ -28,19 +32,19 @@ class RangeIpAddressAdmin(admin.ModelAdmin):
 
 @admin.register(CustomUser)
 class CustomUserAdmin(admin.ModelAdmin):
-    list_display = ('first_name', 'last_name', 'email', 'date_joined')
-    list_display_links = ('email',)
-    search_fields = ['first_name', 'last_name', 'email']
+    list_display = ("first_name", "last_name", "email", "date_joined")
+    list_display_links = ("email",)
+    search_fields = ["first_name", "last_name", "email"]
     fields = (
-        'first_name',
-        'last_name',
-        'email',
-        'password',
-        'phone_number',
-        'is_active',
-        'date_joined',
+        "first_name",
+        "last_name",
+        "email",
+        "password",
+        "phone_number",
+        "is_active",
+        "date_joined",
     )
-    readonly_fields = ('date_joined',)
+    readonly_fields = ("date_joined",)
 
     def save_model(self, request, obj, form, change):
         if not obj.pk:
@@ -59,7 +63,7 @@ class CustomUserAdmin(admin.ModelAdmin):
 
 @admin.register(UnknownIpRateLimit)
 class UnknownIpRateLimitAdmin(admin.ModelAdmin):
-    list_display = ('rate_limit_per_minute',)
+    list_display = ("rate_limit_per_minute",)
 
     def has_add_permission(self, request):
         return not UnknownIpRateLimit.objects.exists()

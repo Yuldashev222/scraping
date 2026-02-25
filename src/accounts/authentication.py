@@ -11,8 +11,8 @@ class IPAddressAuthentication(BaseAuthentication):
             return None
 
         try:
-            first_part_ipaddress = ipaddress[:ipaddress.rindex('.')]
-            last_part_ipaddress = int(ipaddress[ipaddress.rindex('.') + 1:])
+            first_part_ipaddress = ipaddress[: ipaddress.rindex(".")]
+            last_part_ipaddress = int(ipaddress[ipaddress.rindex(".") + 1 :])
             range_ip = RangeIpAddress.objects.filter(
                 is_active=True,
                 first_part_ipaddress=first_part_ipaddress,

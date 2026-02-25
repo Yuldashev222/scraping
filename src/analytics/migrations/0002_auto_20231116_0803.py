@@ -6,53 +6,77 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('analytics', '0001_initial'),
+        ("analytics", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ChannelAnalytics',
+            name="ChannelAnalytics",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('channel', models.CharField(max_length=500)),
-                ('visitors', models.IntegerField()),
-                ('range_date', models.DateField(null=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("channel", models.CharField(max_length=500)),
+                ("visitors", models.IntegerField()),
+                ("range_date", models.DateField(null=True)),
             ],
             options={
-                'verbose_name_plural': ' ChannelAnalytics',
+                "verbose_name_plural": " ChannelAnalytics",
             },
         ),
         migrations.CreateModel(
-            name='DeviceAnalytics',
+            name="DeviceAnalytics",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('category', models.CharField(max_length=500)),
-                ('model', models.CharField(max_length=500)),
-                ('visitors', models.IntegerField()),
-                ('range_date', models.DateField(null=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("category", models.CharField(max_length=500)),
+                ("model", models.CharField(max_length=500)),
+                ("visitors", models.IntegerField()),
+                ("range_date", models.DateField(null=True)),
             ],
             options={
-                'verbose_name_plural': ' DeviceAnalytics',
+                "verbose_name_plural": " DeviceAnalytics",
             },
         ),
         migrations.CreateModel(
-            name='PagesAnalytics',
+            name="PagesAnalytics",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('page_path', models.CharField(max_length=500)),
-                ('visitors', models.IntegerField()),
-                ('range_date', models.DateField(null=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("page_path", models.CharField(max_length=500)),
+                ("visitors", models.IntegerField()),
+                ("range_date", models.DateField(null=True)),
             ],
             options={
-                'verbose_name_plural': ' PagesAnalytics',
+                "verbose_name_plural": " PagesAnalytics",
             },
         ),
         migrations.AlterModelOptions(
-            name='citiesanalytics',
-            options={'verbose_name_plural': ' CitiesAnalytics'},
+            name="citiesanalytics",
+            options={"verbose_name_plural": " CitiesAnalytics"},
         ),
         migrations.AlterModelOptions(
-            name='visitoranalytics',
-            options={'verbose_name_plural': ' VisitorAnalytics'},
+            name="visitoranalytics",
+            options={"verbose_name_plural": " VisitorAnalytics"},
         ),
     ]

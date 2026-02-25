@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('analytics', '0002_auto_20231116_0803'),
+        ("analytics", "0002_auto_20231116_0803"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='pagesanalytics',
-            name='avg_engagement_time',
+            model_name="pagesanalytics",
+            name="avg_engagement_time",
             field=models.IntegerField(default=0),
         ),
     ]
