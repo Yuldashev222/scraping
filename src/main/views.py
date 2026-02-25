@@ -64,8 +64,8 @@ class FiltersView(APIView):
         operation_description=(
             'Returns all valid values for the filter parameters used in `/files/`.\n\n'
             'Use this endpoint to populate dropdowns and validate filter values on the client side.\n\n'
-            '- **countries** — Swedish counties (län)\n'
-            '- **regions** — Municipalities (kommun), each linked to a country\n'
+            '- **counties** — Swedish counties (län)\n'
+            '- **municipalities** — Municipalities (kommun), each linked to a country\n'
             '- **organs** — Types of municipal organs\n'
             '- **modes** — Document modes (Kommun / Region)'
         ),
@@ -75,8 +75,8 @@ class FiltersView(APIView):
                 schema=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
-                        'countries': openapi.Schema(type=openapi.TYPE_ARRAY, items=_filter_item),
-                        'regions': openapi.Schema(type=openapi.TYPE_ARRAY, items=_region_item),
+                        'counties': openapi.Schema(type=openapi.TYPE_ARRAY, items=_filter_item),
+                        'municipalities': openapi.Schema(type=openapi.TYPE_ARRAY, items=_region_item),
                         'organs': openapi.Schema(type=openapi.TYPE_ARRAY, items=_filter_item),
                         'modes': openapi.Schema(type=openapi.TYPE_ARRAY, items=_filter_item),
                     },
@@ -85,16 +85,16 @@ class FiltersView(APIView):
         },
     )
     def get(self, request):
-        countries = [{'value': c.name, 'label': c.value} for c in InformCountry]
-        regions = [
+        counties = [{'value': c.name, 'label': c.value} for c in InformCountry]
+        municipalities = [
             {'value': r.name, 'label': r.value, 'country': r.name[:3]}
             for r in InformRegion
         ]
         organs = [{'value': value, 'label': label} for value, label in Organ.choices]
         modes = [{'value': value, 'label': label} for value, label in FileMode.choices]
         return Response({
-            'countries': countries,
-            'regions': regions,
+            'counties': counties,
+            'municipalities': municipalities,
             'organs': organs,
             'modes': modes,
         })
