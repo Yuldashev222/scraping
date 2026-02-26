@@ -47,6 +47,7 @@ schema_view = get_schema_view(
 urlpatterns = [
     path("login/", TokenObtainPairView.as_view()),
     path("files/", SearchFilesView.as_view()),
+    path("files/create/", FileDetailCreateAPIView.as_view()),
     path("filters/", FiltersView.as_view()),
     # path('files/create/', FileDetailCreateAPIView.as_view()),
     # path('files/update/<int:pk>/', FileDetailUpdateAPIView.as_view()),
