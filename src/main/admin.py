@@ -98,11 +98,13 @@ class FileDetailAdmin(admin.ModelAdmin):
         "region",
         "organ",
         "file_date",
+        "created_at",
         "pages",
         "size",
         "is_active",
         "is_verified",
         "file",
+        "from_integration",
     )
     list_editable = ["is_active"]
     list_display_links = ("country", "region", "organ", "file_date")
@@ -110,6 +112,8 @@ class FileDetailAdmin(admin.ModelAdmin):
     list_per_page = 50
     list_filter = (
         ("file_date", DateRangeFilter),
+        ("created_at", DateRangeFilter),
+        ("updated_at", DateRangeFilter),
         ("inform_id", NumericRangeFilter),
         "mode",
         "is_active",
@@ -117,6 +121,7 @@ class FileDetailAdmin(admin.ModelAdmin):
         "file_date",
         "organ",
         "country",
+        "from_integration",
         RegionListFilter,
     )
     ordering = ("-id",)
@@ -130,9 +135,12 @@ class FileDetailAdmin(admin.ModelAdmin):
         "organ",
         "mode",
         "file_date",
+        "created_at",
+        "updated_at",
         "pages",
         "size",
         "is_active",
+        "from_integration",
         "first_page_text",
         "text",
     )
