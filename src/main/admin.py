@@ -144,7 +144,16 @@ class FileDetailAdmin(admin.ModelAdmin):
         "first_page_text",
         "text",
     )
-    readonly_fields = ("pages", "logo", "size", "text", "source_file_link")
+    readonly_fields = (
+        "pages",
+        "logo",
+        "size",
+        "text",
+        "source_file_link",
+        "created_at",
+        "updated_at",
+        "from_integration",
+    )
 
     def link_id(self, obj):
         if obj.inform:
