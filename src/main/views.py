@@ -29,7 +29,7 @@ class FileDetailCreateAPIView(CreateAPIView):
         country = serializer.validated_data["country"]
         region = serializer.validated_data["region"]
         logo_id = Logo.objects.get(country=country, region=region).id
-        serializer.save(logo_id=logo_id)
+        serializer.save(logo_id=logo_id, from_integration=True)
 
 
 class FileDetailUpdateAPIView(UpdateAPIView):
