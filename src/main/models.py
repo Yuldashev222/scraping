@@ -133,6 +133,9 @@ class FileDetail(models.Model):
     logo = models.ForeignKey(
         Logo, verbose_name="Logotype", on_delete=models.SET_NULL, null=True
     )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    from_integration = models.BooleanField(default=False)
 
     def __str__(self):
         return str(self.file)
