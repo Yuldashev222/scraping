@@ -181,10 +181,10 @@ class SearchFilesView(ListAPIView):
             openapi.Parameter(
                 "mode",
                 openapi.IN_QUERY,
-                description="Document mode: `k` = Kommun (municipality), `r` = Region",
-                type=openapi.TYPE_STRING,
-                enum=["k", "r"],
-                default="k",
+                description="Document mode. Accepts multiple values: `k,r` or `?mode=k&mode=r`. Default: `k`",
+                type=openapi.TYPE_ARRAY,
+                items=openapi.Items(type=openapi.TYPE_STRING, enum=["k", "r"]),
+                collection_format="csv",
             ),
             openapi.Parameter(
                 "page",
@@ -204,32 +204,37 @@ class SearchFilesView(ListAPIView):
                 "country",
                 openapi.IN_QUERY,
                 description=(
-                    "Filter by county (län) code.\n\n"
+                    "Filter by county (län) code. Accepts multiple values: `sto,ska` or `?country=sto&country=ska`.\n\n"
                     "Examples: `sto` (Stockholm), `ska` (Skåne), `vag` (Västra Götaland)\n\n"
                     "See `GET /filters/` for all valid values."
                 ),
-                type=openapi.TYPE_STRING,
+                type=openapi.TYPE_ARRAY,
+                items=openapi.Items(type=openapi.TYPE_STRING),
+                collection_format="csv",
             ),
             openapi.Parameter(
                 "region",
                 openapi.IN_QUERY,
                 description=(
-                    "Filter by municipality (kommun) code.\n\n"
+                    "Filter by municipality (kommun) code. Accepts multiple values: `sto_sto,ska_mal` or `?region=sto_sto&region=ska_mal`.\n\n"
                     "Examples: `sto_sto` (Stockholm), `ska_mal` (Malmö), `vag_got` (Göteborg)\n\n"
                     "See `GET /filters/` for all valid values."
                 ),
-                type=openapi.TYPE_STRING,
+                type=openapi.TYPE_ARRAY,
+                items=openapi.Items(type=openapi.TYPE_STRING),
+                collection_format="csv",
             ),
             openapi.Parameter(
                 "organ",
                 openapi.IN_QUERY,
                 description=(
-                    "Filter by organ type.\n\n"
+                    "Filter by organ type. Accepts multiple values: `s,f,rs` or `?organ=s&organ=f`.\n\n"
                     "Examples: `s` (Kommunstyrelsen), `f` (Kommunfullmäktige), `rs` (Regionstyrelsen)\n\n"
                     "See `GET /filters/` for all valid values."
                 ),
-                type=openapi.TYPE_STRING,
-                enum=[choice[0] for choice in Organ.choices],
+                type=openapi.TYPE_ARRAY,
+                items=openapi.Items(type=openapi.TYPE_STRING, enum=[choice[0] for choice in Organ.choices]),
+                collection_format="csv",
             ),
             openapi.Parameter(
                 "file_date",
