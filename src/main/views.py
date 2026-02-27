@@ -143,6 +143,10 @@ class SearchFilesView(ListAPIView):
         return Q("term", **dct)
 
     @staticmethod
+    def terms_q_expression(field, values):
+        return Q("terms", **{field: values})
+
+    @staticmethod
     def date_q_expression(year):
         last_day_of_month = calendar.monthrange(year, 12)[1]
         start_date = datetime(year=year, month=1, day=1)
@@ -312,23 +316,26 @@ class SearchFilesView(ListAPIView):
         },
     )
     def get(self, request, *args, **kwargs):
-        mode = str(request.query_params.get("mode", FileMode.KOMMUN)).strip()
+        mode_list = [item.strip() for v in request.query_params.getlist("mode") for item in v.split(",") if item.strip()] or [FileMode.KOMMUN]
         page = str(request.query_params.get("page", 1)).strip()
         search_query = str(request.query_params.get("search", "")).strip()
         ordering_query = str(request.query_params.get("ordering", "")).strip()
-        filter_organ_query = str(request.query_params.get("organ", "")).strip()
-        filter_region_query = str(request.query_params.get("region", "")).strip()
+        filter_organ_list = [item.strip() for v in request.query_params.getlist("organ") for item in v.split(",") if item.strip()]
+        filter_region_list = [item.strip() for v in request.query_params.getlist("region") for item in v.split(",") if item.strip()]
         filter_date_query = str(request.query_params.get("file_date", "")).strip()
-        filter_country_query = str(request.query_params.get("country", "")).strip()
+        filter_country_list = [item.strip() for v in request.query_params.getlist("country") for item in v.split(",") if item.strip()]
 
         search = self.document_class.search()
 
-        if mode not in FileMode:
+        invalid_modes = [m for m in mode_list if m not in FileMode]
+        if invalid_modes:
             raise ValidationError({"mode": "is invalid"})
+        if FileMode.REGION in mode_list:
+            filter_region_list = []
+        if len(mode_list) == 1:
+            search = search.query(self.filter_q_expression({"mode": mode_list[0]}))
         else:
-            search = search.query(self.filter_q_expression({"mode": mode}))
-            if mode == FileMode.REGION:
-                filter_region_query = None
+            search = search.query(self.terms_q_expression("mode", mode_list))
 
         if bool(filter_date_query):
             if filter_date_query.isdigit() and len(filter_date_query) == 4:
@@ -336,29 +343,32 @@ class SearchFilesView(ListAPIView):
             else:
                 raise ValidationError({"file_date": "not found"})
 
-        if filter_organ_query:
-            if filter_organ_query not in Organ:
+        if filter_organ_list:
+            invalid = [o for o in filter_organ_list if o not in Organ]
+            if invalid:
                 raise ValidationError({"organ": "not found"})
+            if len(filter_organ_list) == 1:
+                search = search.query(self.filter_q_expression({"organ": filter_organ_list[0]}))
             else:
-                search = search.query(
-                    self.filter_q_expression({"organ": filter_organ_query})
-                )
+                search = search.query(self.terms_q_expression("organ", filter_organ_list))
 
-        if bool(filter_country_query):
-            if filter_country_query in InformCountry.keys():
-                search = search.query(
-                    self.filter_q_expression({"country": filter_country_query})
-                )
-            else:
+        if filter_country_list:
+            invalid = [c for c in filter_country_list if c not in InformCountry.keys()]
+            if invalid:
                 raise ValidationError({"country": "not found"})
-
-        if bool(filter_region_query):
-            if filter_region_query in InformRegion.keys():
-                search = search.query(
-                    self.filter_q_expression({"region": filter_region_query})
-                )
+            if len(filter_country_list) == 1:
+                search = search.query(self.filter_q_expression({"country": filter_country_list[0]}))
             else:
+                search = search.query(self.terms_q_expression("country", filter_country_list))
+
+        if filter_region_list:
+            invalid = [r for r in filter_region_list if r not in InformRegion.keys()]
+            if invalid:
                 raise ValidationError({"region": "not found"})
+            if len(filter_region_list) == 1:
+                search = search.query(self.filter_q_expression({"region": filter_region_list[0]}))
+            else:
+                search = search.query(self.terms_q_expression("region", filter_region_list))
 
         bol = bool(search_query)
         if bol:
