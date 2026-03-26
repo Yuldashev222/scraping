@@ -1,4 +1,5 @@
 import os
+from django import forms
 from django.contrib import admin, messages
 from django.utils.html import format_html
 from django_elasticsearch_dsl.registries import registry
@@ -6,9 +7,27 @@ from django.utils.translation import gettext_lazy as _
 from django.contrib.admin.filters import ChoicesFieldListFilter
 from rangefilter.filters import DateRangeFilter, NumericRangeFilter
 
-from .enums import InformRegion
+from .enums import InformRegion, FileMode
 from .tasks import extract_url_pdf, extract_local_pdf
 from . import models
+
+
+class FileDetailAdminForm(forms.ModelForm):
+    class Meta:
+        model = models.FileDetail
+        fields = "__all__"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["region"].required = False
+
+    def clean(self):
+        cleaned_data = super().clean()
+        mode = cleaned_data.get("mode")
+        region = cleaned_data.get("region")
+        if mode != FileMode.REGION and not region:
+            self.add_error("region", "This field is required.")
+        return cleaned_data
 
 
 @admin.register(models.ZipFileUpload)
@@ -90,6 +109,7 @@ class RegionListFilter(admin.SimpleListFilter):
 
 @admin.register(models.FileDetail)
 class FileDetailAdmin(admin.ModelAdmin):
+    form = FileDetailAdminForm
     list_display = (
         "id",
         "link_id",
@@ -195,6 +215,9 @@ class FileDetailAdmin(admin.ModelAdmin):
         obj.delete()
 
     def save_model(self, request, obj, form, change):
+        if obj.mode == FileMode.REGION:
+            obj.region = f"{obj.country}_no"
+
         created = False if obj.pk else True
         if not created:
             old_file = models.FileDetail.objects.get(pk=obj.pk).file
