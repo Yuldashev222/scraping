@@ -20,9 +20,10 @@ swagger_info = openapi.Info(
     description=(
         "API for searching Swedish municipal documents (protokoll).\n\n"
         "## Authentication\n"
-        "Access is open to all IP addresses. Registered IP ranges or API keys may have higher rate limits "
-        "and access to additional fields (e.g. full document text).\n\n"
-        "**API Key:** Pass the `X-Api-Key` header with your key to authenticate.\n\n"
+        "Two authentication methods are supported (either one is sufficient):\n\n"
+        "1. **IP Address** — if your IP is in a registered range, you are authenticated automatically.\n"
+        "2. **API Key** — pass the `X-Api-Key` header with your key.\n\n"
+        "Authenticated clients get higher rate limits and access to additional fields (e.g. full document text).\n\n"
         "## Rate Limiting\n"
         "Requests are rate-limited per minute. If you exceed the limit, "
         "you will receive a `429 Too Many Requests` response.\n\n"
