@@ -118,6 +118,47 @@ class CustomUser(AbstractUser):
         verbose_name_plural = _("anställda")
 
 
+class ApiKey(models.Model):
+    key = models.CharField(max_length=64, unique=True, editable=False)
+    owner = models.CharField(max_length=400, blank=True)
+    is_active = models.BooleanField(default=True)
+    rate_limit_per_minute = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1)],
+        help_text="How many requests per minute?",
+    )
+    rate_limit_per_month = models.PositiveBigIntegerField(
+        validators=[MinValueValidator(1)],
+        help_text="How many requests per month?",
+    )
+    minute_requests = models.PositiveIntegerField(default=0)
+    current_minute = models.DateTimeField(null=True, blank=True)
+    month_requests = models.PositiveBigIntegerField(default=0)
+    month_started = models.DateTimeField(null=True, blank=True)
+    can_see_text = models.BooleanField(
+        default=False, help_text="Can this API key see the full text of files?"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def clean(self):
+        if self.rate_limit_per_month < self.rate_limit_per_minute:
+            raise ValidationError(
+                {"rate_limit_per_minute": "Rate limit per minute must be less than per month"}
+            )
+
+    def save(self, *args, **kwargs):
+        if not self.key:
+            import secrets
+            self.key = secrets.token_hex(32)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.owner} ({self.key[:8]}...)"
+
+    class Meta:
+        verbose_name = "API Key"
+        verbose_name_plural = "API Keys"
+
+
 class UnknownIpRateLimit(models.Model):
     rate_limit_per_minute = models.PositiveSmallIntegerField(
         default=10,

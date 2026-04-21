@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.models import Group
 
-from .models import CustomUser, RangeIpAddress, UnknownIpRateLimit
+from .models import CustomUser, RangeIpAddress, UnknownIpRateLimit, ApiKey
 
 admin.site.unregister(Group)
 admin.site.site_header = "Offentligabeslut site admin"
@@ -28,6 +28,36 @@ class RangeIpAddressAdmin(admin.ModelAdmin):
         "month_requests",
         "month_started",
     )
+
+
+@admin.register(ApiKey)
+class ApiKeyAdmin(admin.ModelAdmin):
+    list_display = (
+        "owner",
+        "key_short",
+        "is_active",
+        "can_see_text",
+        "rate_limit_per_minute",
+        "rate_limit_per_month",
+        "month_requests",
+        "month_started",
+        "created_at",
+    )
+    list_display_links = ("owner", "key_short")
+    search_fields = ("owner", "key")
+    readonly_fields = (
+        "key",
+        "minute_requests",
+        "month_requests",
+        "current_minute",
+        "month_started",
+        "created_at",
+    )
+
+    def key_short(self, obj):
+        return f"{obj.key[:8]}..."
+
+    key_short.short_description = "API Key"
 
 
 @admin.register(CustomUser)
