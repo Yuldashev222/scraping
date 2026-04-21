@@ -165,7 +165,7 @@ class SearchFilesView(ListAPIView):
             "**Sorting:**\n"
             "- When `search` is provided: sorted by relevance (default) or by date with `ordering=-file_date`\n"
             "- When `search` is empty: sorted by date descending\n\n"
-            "**Note:** The `text` field in the response is only available for authorized IP ranges."
+            "**Note:** The `text` field in the response is only available for authenticated clients (registered IP ranges or API keys with `can_see_text` enabled)."
         ),
         manual_parameters=[
             openapi.Parameter(
@@ -269,7 +269,7 @@ class SearchFilesView(ListAPIView):
                                     ),
                                     "text": openapi.Schema(
                                         type=openapi.TYPE_STRING,
-                                        description="Full document text (only for authorized IP ranges with can_see_text=true)",
+                                        description="Full document text (only for authenticated clients with can_see_text=true)",
                                     ),
                                     "size": openapi.Schema(
                                         type=openapi.TYPE_NUMBER,
