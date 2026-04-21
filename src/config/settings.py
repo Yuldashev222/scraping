@@ -157,7 +157,14 @@ AUTH_USER_MODEL = 'accounts.CustomUser'
 
 SWAGGER_SETTINGS = {
     'USE_SESSION_AUTH': False,
-    'SECURITY_DEFINITIONS': {},
+    'SECURITY_DEFINITIONS': {
+        'Api-Key': {
+            'type': 'apiKey',
+            'name': 'X-Api-Key',
+            'in': 'header',
+            'description': 'API key for authentication. Example: `X-Api-Key: your-api-key`',
+        },
+    },
     'DEFAULT_INFO': 'config.urls.swagger_info',
 }
 
