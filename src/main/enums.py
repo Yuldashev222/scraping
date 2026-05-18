@@ -57,6 +57,7 @@ class InformCountry(Enum):
     vag = "Västra Götaland"
     ore = "Örebro"
     ost = "Östergötland"
+    sor = "Sörmland"
 
     @classmethod
     def choices(cls):
@@ -98,6 +99,7 @@ class InformRegion(Enum):
     vag_no = "vag_no"
     ore_no = "ore_no"
     ost_no = "ost_no"
+    sor_no = "sor_no"
 
     # ---------
 
