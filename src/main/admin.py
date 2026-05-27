@@ -32,11 +32,23 @@ class FileDetailAdminForm(forms.ModelForm):
 
 @admin.register(models.ZipFileUpload)
 class ZipFileUploadAdmin(admin.ModelAdmin):
-    list_display = ["pdfs_count", "is_completed", "zip_file", "created_at"]
+    list_display = ["pdfs_count", "errors_count", "is_completed", "zip_file", "created_at"]
     list_display_links = ["is_completed", "created_at"]
     list_filter = ["is_completed", "created_at"]
-    readonly_fields = ("is_completed", "pdfs_count")
+    fields = ("zip_file", "pdfs_count", "errors_count", "is_completed", "skipped_items_pretty")
+    readonly_fields = ("is_completed", "pdfs_count", "errors_count", "skipped_items_pretty")
     list_per_page = 20
+
+    def skipped_items_pretty(self, obj):
+        if not obj.skipped_items:
+            return "-"
+        rows = "".join(
+            f"<li><b>{item.get('item', '?')}</b> — {item.get('reason', '?')}</li>"
+            for item in obj.skipped_items
+        )
+        return format_html(f"<ul>{rows}</ul>")
+
+    skipped_items_pretty.short_description = "Skipped items"
 
 
 @admin.register(models.Logo)
