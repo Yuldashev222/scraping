@@ -50,6 +50,7 @@ def detect_pdfs(directory_path, zip_file_model_id):
     zip_file_model = models.ZipFileUpload.objects.get(id=zip_file_model_id)
 
     cnt = 0
+    skipped = []
 
     regions = os.listdir(directory_path)
     for region in regions:
@@ -60,6 +61,10 @@ def detect_pdfs(directory_path, zip_file_model_id):
             print(model_region)
         except ValueError:
             print(f"InformRegion does not exist for {normalizing_region}")
+            skipped.append({
+                "item": region,
+                "reason": f"unknown region: {normalizing_region}",
+            })
             continue
 
         organs_path = os.path.join(directory_path, region)
@@ -75,6 +80,10 @@ def detect_pdfs(directory_path, zip_file_model_id):
                 model_organ = Organ(normalizing_organ).value
             except ValueError:
                 print(f"Organ does not exist for {normalizing_organ}")
+                skipped.append({
+                    "item": f"{region}/{organ}",
+                    "reason": f"unknown organ: {normalizing_organ}",
+                })
                 break
 
             years_path = os.path.join(organs_path, organ)
@@ -83,6 +92,10 @@ def detect_pdfs(directory_path, zip_file_model_id):
                 years = os.listdir(years_path)
             except Exception as e:
                 print(f"Could not find years for {years_path}, {e=}")
+                skipped.append({
+                    "item": f"{region}/{organ}",
+                    "reason": f"cannot list years: {e}",
+                })
                 continue
             for year in years:
                 print(year)
@@ -128,12 +141,18 @@ def detect_pdfs(directory_path, zip_file_model_id):
                             file=f'zip_files/{directory_path.split("/")[-1]}/{region}/{organ}/{year}/{pdf_file}',
                         )
                         cnt += 1
-                        extract_local_pdf(obj.id, obj.file.path)
+                        extract_local_pdf(obj.id, obj.file.path, errors=skipped)
                 except Exception as e:
                     print(f"{e=}")
+                    skipped.append({
+                        "item": f"{region}/{organ}/{year}",
+                        "reason": str(e),
+                    })
                     continue
 
     zip_file_model.pdfs_count = cnt
+    zip_file_model.errors_count = len(skipped)
+    zip_file_model.skipped_items = skipped
     zip_file_model.is_completed = True
     zip_file_model.save()
     os.remove(zip_file_model.zip_file.path)
@@ -141,7 +160,7 @@ def detect_pdfs(directory_path, zip_file_model_id):
 
 
 @shared_task
-def extract_local_pdf(obj_id, pdf_file):
+def extract_local_pdf(obj_id, pdf_file, errors=None):
     print("extract_local_pdf ------------------------------------------- start")
     obj = models.FileDetail.objects.get(id=obj_id)
 
@@ -166,6 +185,11 @@ def extract_local_pdf(obj_id, pdf_file):
         obj.save()
     except Exception as e:
         print(e)
+        if errors is not None:
+            errors.append({
+                "item": f"file id {obj.id} ({pdf_file})",
+                "reason": f"extract_local_pdf failed: {e}",
+            })
         obj.pages = 1
         obj.save()
     print("extract_local_pdf ------------------------------------------- end")

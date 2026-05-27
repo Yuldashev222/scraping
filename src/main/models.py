@@ -14,6 +14,8 @@ class ZipFileUpload(models.Model):
         validators=[FileExtensionValidator(allowed_extensions=["zip"])],
     )
     pdfs_count = models.PositiveSmallIntegerField(blank=True, default=0)
+    errors_count = models.PositiveSmallIntegerField(blank=True, default=0)
+    skipped_items = models.JSONField(default=list, blank=True)
     is_completed = models.BooleanField(verbose_name="är klart", default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
